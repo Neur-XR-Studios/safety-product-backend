@@ -6,33 +6,42 @@ const connectDB = async (DATABASE_URL, DATABASE) => {
     try {
         const DB_OPTIONS = {
             dbName: DATABASE
-        }
+        };
 
         mongoose.set("strictQuery", false);
         await mongoose.connect(DATABASE_URL, DB_OPTIONS);
 
-        let adminExisting = await User.find({ role: 'superadmin' });
-        if (adminExisting.length <= 0) {
-            const phoneNumber = 7874263694
-            const firstName = 'Neur'
-            const lastName = 'Industries'
-            const username = 'superadmin@neurindustries.com'
-            const password = 'superadmin@123'
+        // Check if admin user already exists based on username
+        const adminExisting = await User.findOne({ username: 'superadmin@neurindustries.com' });
+
+        if (!adminExisting) {
+            const phoneNumber = 7874263694;
+            const firstName = 'Neur';
+            const lastName = 'Industries';
+            const username = 'superadmin@neurindustries.com';
+            const password = 'superadmin@123';
+
+            const is_superadmin = true;
+
             // Hash the password
             const hashedPassword = await bcrypt.hash(password, 10);
+
             // Create a new user
-            const user = new User({ _id: new mongoose.Types.ObjectId('64d33173fd7ff3fa0924a109'), username, password: hashedPassword, firstName, lastName, phoneNumber, role: 'admin' });
+            const user = new User({ username, password: hashedPassword, firstName, lastName, is_superadmin, phoneNumber, role: 'super admin' });
+
             // Save the user to the database
             await user.save();
             console.log("Admin created successfully..");
-        } else if (adminExisting[0].deleted === true) {
-            await User.findByIdAndUpdate(adminExisting[0]._id, { deleted: false });
-            console.log("Admin Update successfully..");
+        } else if (adminExisting.deleted === true) {
+            // If admin exists but is marked as deleted, update the deleted flag
+            await User.findByIdAndUpdate(adminExisting._id, { deleted: false });
+            console.log("Admin updated successfully..");
         }
 
         console.log("Database Connected Successfully..");
     } catch (err) {
         console.log("Database Not connected", err.message);
     }
-}
-module.exports = connectDB
+};
+
+module.exports = connectDB;

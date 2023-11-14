@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('./db/config')
-// const route = require('./controllers/route');
+const route = require('./controllers/route');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const port = 5001
@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 // Set up CORS  
 app.use(cors())
 //API Routes
-// app.use('/api', route);
+app.use('/api', route);
 
 app.get('/', async (req, res) => {
 

@@ -20,7 +20,7 @@ const user = new mongoose.Schema({
         default: false,
     },
     company: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',
     },
     CreatedOn: {
