@@ -3,6 +3,7 @@ const User = require('../model/schema/user');
 const bcrypt = require('bcrypt');
 
 const connectDB = async (DATABASE_URL, DATABASE) => {
+
     try {
         const DB_OPTIONS = {
             dbName: DATABASE
