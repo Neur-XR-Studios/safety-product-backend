@@ -1,7 +1,7 @@
 const { ObjectId } = require('mongoose').Types;
 const Trainee = require('../../model/schema/trainee');
 const Company = require('../../model/schema/company');
-const excelJS = require("exceljs");
+const ExcelJS = require("exceljs");
 
 async function processLearningTime(result) {
     let learningTimeTaken = 0;
@@ -175,6 +175,23 @@ const fireExtinguisherExcel = async (req, res) => {
         const month = req.body.month;
         const year = req.body.year;
 
+        // Validate companyId
+        if (!companyId || typeof companyId !== 'string') {
+            return res.status(400).send({ message: 'Invalid or missing company_id in the request body.' });
+        }
+
+        // Validate month
+        const monthNumber = parseInt(month, 10);
+        if (!month || isNaN(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+            return res.status(400).send({ message: 'Invalid or missing month in the request body.' });
+        }
+
+        // Validate year
+        const yearNumber = parseInt(year, 10);
+        if (!year || isNaN(yearNumber) || yearNumber < 1900 || yearNumber > 2100) {
+            return res.status(400).send({ message: 'Invalid or missing year in the request body.' });
+        }
+
         const result = await Trainee.aggregate([
             {
                 $match: { company: new ObjectId(companyId) }
@@ -233,6 +250,67 @@ const fireExtinguisherExcel = async (req, res) => {
             }
         ]);
 
+        // Create a new Excel workbook and add a worksheet
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('FireExtinguisherData');
+
+        // Define the worksheet columns with custom headers
+        const columns = [
+            // Trainee Data
+            { header: 'SI', key: 'SI', width: 5 },
+            { header: 'Date', key: 'Date', width: 10 },
+            { header: 'Session ID', key: 'sessionId', width: 15 },
+            { header: 'Phone number', key: 'phoneNumber', width: 15 },
+
+            // Learning
+            { header: 'Language selected', key: 'languageSelected', width: 15 },
+            { header: 'Learning Time taken', key: 'learning.timeTaken', width: 10 },
+            { header: 'Learning completion Status', key: 'learning.completionStatus', width: 10 },
+
+            // Evaluation
+            { header: 'Total time taken for evaluation', key: 'evaluation.totalTime', width: 25 },
+            { header: 'Total time (Test 1)', key: 'evaluation.test1.totalTime', width: 15 },
+            { header: 'Response time (Test 1)', key: 'evaluation.test1.responseTime', width: 15 },
+            { header: 'Extinguishment time (Test 1)', key: 'evaluation.test1.extinguishmentTime', width: 15 },
+            { header: 'Total time (Test 2)', key: 'evaluation.test2.totalTime', width: 15 },
+            { header: 'Response time (Test 2)', key: 'evaluation.test2.responseTime', width: 15 },
+
+            // Completion Status
+            { header: 'Completion Status', key: 'learning.completionStatus', width: 15 },
+        ];
+
+        // Set the worksheet columns
+        worksheet.columns = columns;
+
+        // Add the data to the worksheet
+        result.forEach((row, index) => {
+            // Assuming 'CreatedOn' is the date field in your result
+            const formattedDate = row.CreatedOn ? row.CreatedOn.toISOString().slice(0, 10) : '';
+
+            // Assigning values to custom keys for formatting
+            row.SI = index + 1;
+            row.Date = formattedDate;
+            row.sessionId = result.sessionId;
+            row.phoneNumber = result.phoneNumber;
+
+            row.learning.forEach((learningData) => {
+                row['Language selected'] = learningData.languageSelected;
+                row['Learning Time taken'] = learningData.timeTaken;
+                row['Learning completion Status'] = learningData.completionStatus;
+            });
+
+            worksheet.addRow(row);
+        });
+
+        // Set up the response headers for Excel file download
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=FireExtinguisherData.xlsx');
+
+        // Write the Excel workbook to the response stream
+        await workbook.xlsx.write(res);
+
+        // End the response after writing the workbook
+        res.end();
 
         res.send({
             message: 'Success',
