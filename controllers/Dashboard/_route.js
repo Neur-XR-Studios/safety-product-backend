@@ -4,6 +4,7 @@ const Dashboard = require('./dashboard');
 
 const router = express.Router();
 
-router.get('/dashboard-data/', Dashboard.index)
+router.get('/fire-extinguisher/', Dashboard.fireExtinguisherIndex)
+router.get('/fire-extinguisher/excel/', Dashboard.fireExtinguisherExcel)
 
 module.exports = router
