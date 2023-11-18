@@ -263,44 +263,71 @@ const fireExtinguisherExcel = async (req, res) => {
             { header: 'Phone number', key: 'phoneNumber', width: 15 },
 
             // Learning
-            { header: 'Language selected', key: 'languageSelected', width: 15 },
-            { header: 'Learning Time taken', key: 'learning.timeTaken', width: 10 },
-            { header: 'Learning completion Status', key: 'learning.completionStatus', width: 10 },
+            { header: 'Language selected', key: 'languageSelected', width: 25 },
+            { header: 'Learning Time taken', key: 'learningtimeTaken', width: 20 },
+            { header: 'Learning completion Status', key: 'learningcompletionStatus', width: 25 },
 
             // Evaluation
-            { header: 'Total time taken for evaluation', key: 'evaluation.totalTime', width: 25 },
-            { header: 'Total time (Test 1)', key: 'evaluation.test1.totalTime', width: 15 },
-            { header: 'Response time (Test 1)', key: 'evaluation.test1.responseTime', width: 15 },
-            { header: 'Extinguishment time (Test 1)', key: 'evaluation.test1.extinguishmentTime', width: 15 },
-            { header: 'Total time (Test 2)', key: 'evaluation.test2.totalTime', width: 15 },
-            { header: 'Response time (Test 2)', key: 'evaluation.test2.responseTime', width: 15 },
+            { header: 'Total time taken for evaluation', key: 'evaluationtotalTime', width: 28 },
+            { header: 'Total time (Test 1)', key: 'evaluationtest1totalTime', width: 25 },
+            { header: 'Response time (Test 1)', key: 'evaluationtest1responseTime', width: 25 },
+            { header: 'Extinguishment time (Test 1)', key: 'evaluationtest1extinguishmentTime', width: 25 },
+            { header: 'Total time (Test 2)', key: 'evaluationtest2totalTime', width: 25 },
+            { header: 'Response time (Test 2)', key: 'evaluationtest2responseTime', width: 25 },
 
-            // Completion Status
-            { header: 'Completion Status', key: 'learning.completionStatus', width: 15 },
         ];
+
+
 
         // Set the worksheet columns
         worksheet.columns = columns;
 
         // Add the data to the worksheet
-        result.forEach((row, index) => {
+        result.forEach((rowData, index) => {
+            const row = {};
+
             // Assuming 'CreatedOn' is the date field in your result
-            const formattedDate = row.CreatedOn ? row.CreatedOn.toISOString().slice(0, 10) : '';
+            const formattedDate = rowData.CreatedOn ? rowData.CreatedOn.toISOString().slice(0, 10) : '';
 
             // Assigning values to custom keys for formatting
             row.SI = index + 1;
             row.Date = formattedDate;
-            row.sessionId = result.sessionId;
-            row.phoneNumber = result.phoneNumber;
+            row.sessionId = rowData.sessionId;
+            row.phoneNumber = rowData.phoneNumber;
 
-            row.learning.forEach((learningData) => {
-                row['Language selected'] = learningData.languageSelected;
-                row['Learning Time taken'] = learningData.timeTaken;
-                row['Learning completion Status'] = learningData.completionStatus;
+            rowData.learning.forEach((learningData) => {
+                row.languageSelected = learningData.languageSelected
+                row.learningcompletionStatus = learningData.completionStatus
+                row.learningtimeTaken = learningData.timeTaken
+            });
+
+            rowData.evaluation.forEach((evaluationData) => {
+                row.evaluationtotalTime = evaluationData.timeTaken
+
+                if (evaluationData.test1) {
+                    row.evaluationtest1totalTime = evaluationData.test1.totalTime;
+                    row.evaluationtest1responseTime = evaluationData.test1.responseTime;
+                    row.evaluationtest1extinguishmentTime = evaluationData.test1.extinguishmentTime;
+                } else {
+                    row.evaluationtest1totalTime = null;
+                    row.evaluationtest1responseTime = null;
+                    row.evaluationtest1extinguishmentTime = null;
+                }
+
+                if (evaluationData.test1) {
+                    row.evaluationtest2totalTime = evaluationData.test2.totalTime;
+                    row.evaluationtest2responseTime = evaluationData.test2.responseTime;
+                } else {
+                    row.evaluationtest2totalTime = null;
+                    row.evaluationtest2responseTime = null;
+                }
+
             });
 
             worksheet.addRow(row);
         });
+
+
 
         // Set up the response headers for Excel file download
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -312,12 +339,6 @@ const fireExtinguisherExcel = async (req, res) => {
         // End the response after writing the workbook
         res.end();
 
-        res.send({
-            message: 'Success',
-            data: {
-                result
-            }
-        });
     } catch (error) {
         res.status(500).send({ message: error.message });
     }
