@@ -42,7 +42,7 @@ async function processEvaluationTime(result) {
 }
 
 function calculateAverageResponseTime(result, test) {
-    let responseTime = 0;
+    let responseTimes = 0;
 
     for (const trainee of result) {
         const timeTaken = trainee.evaluation;
@@ -53,12 +53,12 @@ function calculateAverageResponseTime(result, test) {
 
             if (timetake) {
                 const [seconds, milliSeconds] = timetake.split(':');
-                responseTime += parseInt(seconds, 10) + parseInt(milliSeconds, 10) / 1000;
+                responseTimes += parseInt(seconds, 10) + parseInt(milliSeconds, 10) / 1000;
             }
         }
     }
 
-    return responseTime
+    return responseTimes
 }
 
 const fireExtinguisherIndex = async (req, res) => {
