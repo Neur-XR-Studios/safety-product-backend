@@ -21,6 +21,13 @@ const createOrUpdateEvaluation = async (req, res) => {
                 return res.status(400).json({ message: 'Failed to create or update Evaluation', error: `test1.responseTime is not valid. Please use the format mm:ss` });
             }
         }
+        if (test1.totalTime) {
+            const timeToValidate = test1.totalTime;
+            const timeValidationResult = validateTime(timeToValidate);
+            if (timeValidationResult === 0) {
+                return res.status(400).json({ message: 'Failed to create or update Evaluation', error: `test1.totalTime is not valid. Please use the format mm:ss` });
+            }
+        }
         if (test1.extinguishmentTime) {
             const timeToValidate = test1.extinguishmentTime;
             const timeValidationResult = validateTime(timeToValidate);
