@@ -1,32 +1,59 @@
 const Evaluation = require('../../model/schema/evaluation');
-
+const validateTime = require('../../Validators/timeValidator');
 // Create or update an evaluation entry
 const createOrUpdateEvaluation = async (req, res) => {
     try {
         const { sessionId, timeTaken, test1, test2 } = req.body;
 
-        if (!sessionId || !timeTaken || !test1 || !test2) {
+        if (!sessionId || !test1 || !test2) {
             const missingFields = [];
             if (!sessionId) missingFields.push('sessionId');
-            if (!timeTaken) missingFields.push('timeTaken');
             if (!test1) missingFields.push('test1');
             if (!test2) missingFields.push('test2');
 
             return res.status(400).json({ message: 'Missing required fields', missingFields });
         }
 
+        if (test1.responseTime) {
+            const timeToValidate = test1.responseTime;
+            const timeValidationResult = validateTime(timeToValidate);
+            if (timeValidationResult === 0) {
+                return res.status(400).json({ message: 'Failed to create or update Evaluation', error: `test1.responseTime is not valid. Please use the format mm:ss` });
+            }
+        }
+        if (test1.extinguishmentTime) {
+            const timeToValidate = test1.extinguishmentTime;
+            const timeValidationResult = validateTime(timeToValidate);
+            if (timeValidationResult === 0) {
+                return res.status(400).json({ message: 'Failed to create or update Evaluation', error: `test1.extinguishmentTime is not valid. Please use the format mm:ss` });
+            }
+        }
+        if (test2.totalTime) {
+            const timeToValidate = test2.totalTime;
+            const timeValidationResult = validateTime(timeToValidate);
+            if (timeValidationResult === 0) {
+                return res.status(400).json({ message: 'Failed to create or update Evaluation', error: `test2.totalTime is not valid. Please use the format mm:ss` });
+            }
+        }
+        if (test2.responseTime) {
+            const timeToValidate = test2.responseTime;
+            const timeValidationResult = validateTime(timeToValidate);
+            if (timeValidationResult === 0) {
+                return res.status(400).json({ message: 'Failed to create or update Evaluation', error: `test2.responseTime is not valid. Please use the format mm:ss` });
+            }
+        }
+        if (timeTaken) {
+            const timeToValidate = timeTaken;
+            const timeValidationResult = validateTime(timeToValidate);
+            if (timeValidationResult === 0) {
+                return res.status(400).json({ message: 'Failed to create or update Evaluation', error: `Time is not valid. Please use the format mm:ss in ${timeTaken}.` });
+            }
+        }
+
         if (typeof sessionId !== 'number') {
             return res.status(400).json({ message: 'sessionId must be a number' });
         }
 
-        const timeTakenRegex = /^\d{2}:\d{2}$/;
-        if (!timeTakenRegex.test(timeTaken)) {
-            return res.status(400).json({ message: 'Invalid timeTaken format. Use MM:ss' });
-        }
-
-        if (!validateTestStructure(test1) || !validateTestStructure(test2)) {
-            return res.status(400).json({ message: 'Invalid test structure' });
-        }
 
         const existingEvaluation = await Evaluation.findOne({ sessionId });
 
@@ -45,18 +72,11 @@ const createOrUpdateEvaluation = async (req, res) => {
             return res.status(201).json({ message: 'New evaluation created successfully', data: newEvaluation });
         }
     } catch (error) {
-        console.error('Error creating/updating evaluation:', error);
+        console.error('Error creating or updating evaluation:', error);
         return res.status(500).json({ message: 'Failed to create/update evaluation', error: error.message });
     }
 };
 
-// Helper function to validate the structure of test1 and test2
-const validateTestStructure = (test) => {
-    if (!test || typeof test !== 'object' || !test.totalTime || !test.responseTime) {
-        return false;
-    }
-    return true;
-};
 
 
 // Retrieve all evaluations

@@ -20,7 +20,7 @@ const evaluation = new mongoose.Schema({
             type: String,
         },
         extinguishmentTime: {
-            type: Number,
+            type: String,
         },
     },
     test2: {

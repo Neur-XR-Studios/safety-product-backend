@@ -1,12 +1,22 @@
 const Learning = require('../../model/schema/learning');
-
+const validateTime = require('../../Validators/timeValidator');
 // Create a new learning entry or update an existing one
 const createLearning = async (req, res) => {
     try {
         const { sessionId, languageSelected, timeTaken, completionStatus } = req.body;
         if (sessionId === null || !Number.isInteger(sessionId)) {
-            return res.status(400).json({ message: 'Failed to create/update Learning entry', error: 'Trainee Session ID must be a non-null integer' });
+            return res.status(400).json({ message: 'Failed to create or update Learning entry', error: 'Trainee Session ID must be a non-null integer' });
         }
+
+        if (timeTaken) {
+            const timeToValidate = timeTaken;
+            const timeValidationResult = validateTime(timeToValidate);
+            if (timeValidationResult === 0) {
+                return res.status(400).json({ message: 'Failed to create or update Learning entry', error: 'Time is not valid. Please use the format mm:ss.' });
+            }
+        }
+
+
         const existingLearning = await Learning.findOne({ sessionId });
 
         if (existingLearning) {
