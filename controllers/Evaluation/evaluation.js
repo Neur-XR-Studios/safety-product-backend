@@ -120,6 +120,7 @@ const updateEvaluationBySessionId = async (req, res) => {
         const sessionId = req.params.sessionId;
         const { timeTaken, test1, test2 } = req.body;
 
+
         const evaluation = await Evaluation.findOne({ sessionId });
 
         if (evaluation) {
@@ -132,6 +133,7 @@ const updateEvaluationBySessionId = async (req, res) => {
         } else {
             res.status(404).json({ message: 'Evaluation not found for the provided session ID' });
         }
+
     } catch (error) {
         console.error('Error updating evaluation by session ID:', error);
         res.status(500).json({ message: 'Failed to update evaluation by session ID', error: error.message });
