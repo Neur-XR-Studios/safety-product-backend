@@ -11,7 +11,13 @@ const app = express();
 // Middleware
 app.use(bodyParser.json());
 // Set up CORS  
-app.use(cors())
+// app.use(cors())
+const corsOptions = {
+    origin: 'https://videoloader.s3.ap-south-1.amazonaws.com',
+    optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+app.use(cors(corsOptions));
 //API Routes
 app.use('/api', route);
 
@@ -36,3 +42,5 @@ const DATABASE_URL = process.env.DB_URL || 'mongodb://127.0.0.1:27017'
 const DATABASE = process.env.DB || 'safety-products'
 
 db(DATABASE_URL, DATABASE);
+
+"https://videoloader.s3.ap-south-1.amazonaws.com"
