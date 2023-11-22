@@ -31,10 +31,16 @@ const evaluation = new mongoose.Schema({
             type: String,
         }
     },
+    completionStatus: {
+        type: String,
+        enum: ['Complete', 'Incomplete'],
+        required: true,
+    },
     CreatedOn: {
         type: Date,
         default: Date.now,
-    },
+    }
+
 });
 
 const Evaluation = mongoose.model('Evaluation', evaluation);

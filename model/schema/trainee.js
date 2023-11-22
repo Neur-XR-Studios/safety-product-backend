@@ -24,6 +24,10 @@ const trainee = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',
     },
+    type: {
+        type: String,
+        required: true
+    },
     CreatedOn: {
         type: Date,
         default: Date.now,

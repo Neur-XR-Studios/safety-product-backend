@@ -43,4 +43,4 @@ const DATABASE = process.env.DB || 'safety-products'
 
 db(DATABASE_URL, DATABASE);
 
-"https://videoloader.s3.ap-south-1.amazonaws.com"
+// "https://videoloader.s3.ap-south-1.amazonaws.com"

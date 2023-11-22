@@ -1,27 +1,45 @@
 const Learning = require('../../model/schema/learning');
 const validateTime = require('../../Validators/timeValidator');
-// Create a new learning entry or update an existing one
+
+
+const isValidDateTimeFormat = (dateTimeString) => {
+    const dateTimeRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+    return dateTimeRegex.test(dateTimeString);
+};
+
 const createLearning = async (req, res) => {
     try {
-        const { sessionId, languageSelected, timeTaken, completionStatus } = req.body;
+        const { sessionId, languageSelected, startTime, endTime } = req.body;
+
         if (sessionId === null || !Number.isInteger(sessionId)) {
             return res.status(400).json({ message: 'Failed to create or update Learning entry', error: 'Trainee Session ID must be a non-null integer' });
         }
 
-        if (timeTaken) {
-            const timeToValidate = timeTaken;
-            const timeValidationResult = validateTime(timeToValidate);
-            if (timeValidationResult === 0) {
-                return res.status(400).json({ message: 'Failed to create or update Learning entry', error: 'Time is not valid. Please use the format mm:ss.' });
-            }
+        const timeFormat1 = isValidDateTimeFormat(startTime)
+        const timeFormat2 = isValidDateTimeFormat(endTime)
+
+        if (timeFormat1 != true || timeFormat2 != true) {
+            return res.status(404).json({ message: 'startTime or endTime Not in valid format.' });
         }
 
+        let totalTimeTaken = '00:00';
+
+        if (startTime && endTime) {
+            const startTimeObj = new Date(startTime);
+            const endTimeObj = new Date(endTime);
+
+            const timeDifferenceInSeconds = Math.floor((endTimeObj - startTimeObj) / 1000);
+
+            const minutes = Math.floor(timeDifferenceInSeconds / 60);
+            const seconds = timeDifferenceInSeconds % 60;
+            totalTimeTaken = `${minutes}:${seconds}`;
+        }
 
         const existingLearning = await Learning.findOne({ sessionId });
 
         if (existingLearning) {
 
-            const updates = { languageSelected, timeTaken, completionStatus };
+            const updates = { languageSelected, timeTaken: totalTimeTaken };
             const updatedLearning = await Learning.findOneAndUpdate({ sessionId }, updates, { new: true });
 
             res.status(200).json({ message: 'Learning entry updated successfully', data: updatedLearning });
@@ -30,8 +48,7 @@ const createLearning = async (req, res) => {
             const newLearning = new Learning({
                 sessionId,
                 languageSelected,
-                timeTaken,
-                completionStatus,
+                timeTaken: totalTimeTaken
             });
 
             await newLearning.save();
@@ -56,8 +73,8 @@ const getAllLearning = async (req, res) => {
 
 const getLearningById = async (req, res) => {
     try {
-        const learningId = req.params.id;
-        const learningEntry = await Learning.findById(learningId);
+        const { sessionId } = req.params;
+        const learningEntry = await Learning.findOne({ sessionId });
 
         if (!learningEntry) {
             res.status(404).json({ message: 'Learning entry not found' });
@@ -70,28 +87,11 @@ const getLearningById = async (req, res) => {
     }
 };
 
-const updateLearningById = async (req, res) => {
-    try {
-        const learningId = req.params.id;
-        const updates = req.body;
-        const updatedLearning = await Learning.findByIdAndUpdate(learningId, updates, { new: true });
-
-        if (!updatedLearning) {
-            res.status(404).json({ message: 'Learning entry not found' });
-        } else {
-            res.status(200).json({ message: 'Learning entry updated successfully', data: updatedLearning });
-        }
-    } catch (error) {
-        console.error('Failed to update learning entry:', error);
-        res.status(400).json({ message: 'Failed to update learning entry', error: error.message });
-    }
-};
-
 
 const deleteLearningById = async (req, res) => {
     try {
-        const learningId = req.params.id;
-        const deletedLearning = await Learning.findByIdAndDelete(learningId);
+        const { sessionId } = req.params;
+        const deletedLearning = await Learning.findOneAndDelete({ sessionId });
 
         if (!deletedLearning) {
             res.status(404).json({ message: 'Learning entry not found' });
@@ -108,6 +108,5 @@ module.exports = {
     createLearning,
     getAllLearning,
     getLearningById,
-    updateLearningById,
-    deleteLearningById,
+    deleteLearningById
 };

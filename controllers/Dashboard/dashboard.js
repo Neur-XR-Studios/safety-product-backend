@@ -1,6 +1,7 @@
 const { ObjectId } = require('mongoose').Types;
 const Trainee = require('../../model/schema/trainee');
 const Company = require('../../model/schema/company');
+const TrainingType = require('../../model/schema/trainingType');
 const ExcelJS = require("exceljs");
 
 async function processLearningTime(result) {
@@ -21,6 +22,25 @@ async function processLearningTime(result) {
 
     return learningTimeTaken / 3600;
 }
+async function processHeightEvaluationTime(result) {
+    let HeightEvaluationTimeTaken = 0;
+
+    for (const trainee of result) {
+        const timeTaken = trainee.workatheigthevaluation;
+
+        for (const data of timeTaken) {
+            const timeTakenForLearning = data.timeTaken;
+
+            if (timeTakenForLearning) {
+                const [minutes, seconds] = timeTakenForLearning.split(':');
+                HeightEvaluationTimeTaken += parseInt(minutes, 10) * 60 + parseInt(seconds, 10);
+            }
+        }
+    }
+
+    return HeightEvaluationTimeTaken / 3600;
+}
+
 
 async function processEvaluationTime(result) {
     let evaluationTimeTaken = 0;
@@ -80,7 +100,10 @@ const fireExtinguisherIndex = async (req, res) => {
 
         const result = await Trainee.aggregate([
             {
-                $match: { company: new ObjectId(companyId) }
+                $match: {
+                    company: new ObjectId(companyId),
+                    type: "fire-extinguisher"
+                }
             },
             {
                 $lookup: {
@@ -105,13 +128,14 @@ const fireExtinguisherIndex = async (req, res) => {
                     phoneNumber: 1,
                     company: 1,
                     CreatedOn: 1,
+                    type: 1,
                     learning: {
                         timeTaken: 1,
-                        completionStatus: 1,
                         languageSelected: 1,
                     },
                     evaluation: {
                         timeTaken: 1,
+                        completionStatus: 1,
                         test1: {
                             totalTime: 1,
                             responseTime: 1,
@@ -128,7 +152,7 @@ const fireExtinguisherIndex = async (req, res) => {
 
         // Total Training Completed
         const totalTrainingCompleted = result.reduce((total, trainee) => {
-            const completionStatus = trainee.learning;
+            const completionStatus = trainee.evaluation;
             return total + completionStatus.filter(data => data.completionStatus === "Complete").length;
         }, 0);
 
@@ -139,8 +163,8 @@ const fireExtinguisherIndex = async (req, res) => {
         const evaluationTimeTakenInHours = await processEvaluationTime(result);
 
         // Total Time Taken
-        const totalTimeTaken = learningTimeTakenInHours + evaluationTimeTakenInHours;
-        const restotalTimeTaken = Number(totalTimeTaken.toFixed(1));
+        const restotalTimeTaken = learningTimeTakenInHours + evaluationTimeTakenInHours;
+        const totalHoursTrained = Number(restotalTimeTaken.toFixed(1));
 
         // Readiness Percentage
         const readinessPercentageCalculation = Math.round((totalTrainingCompleted / result.length) * 100);
@@ -157,7 +181,7 @@ const fireExtinguisherIndex = async (req, res) => {
             data: {
                 companyDetails,
                 totalTrainingCompleted,
-                restotalTimeTaken,
+                totalHoursTrained,
                 readinessPercentage,
                 averageResponseTime
             }
@@ -194,7 +218,10 @@ const fireExtinguisherExcel = async (req, res) => {
 
         const result = await Trainee.aggregate([
             {
-                $match: { company: new ObjectId(companyId) }
+                $match: {
+                    company: new ObjectId(companyId),
+                    type: "fire-extinguisher"
+                }
             },
             {
                 $lookup: {
@@ -221,11 +248,11 @@ const fireExtinguisherExcel = async (req, res) => {
                     CreatedOn: 1,
                     learning: {
                         timeTaken: 1,
-                        completionStatus: 1,
                         languageSelected: 1,
                     },
                     evaluation: {
                         timeTaken: 1,
+                        completionStatus: 1,
                         test1: {
                             totalTime: 1,
                             responseTime: 1,
@@ -257,23 +284,24 @@ const fireExtinguisherExcel = async (req, res) => {
         // Define the worksheet columns with custom headers
         const columns = [
             // Trainee Data
-            { header: 'SI', key: 'SI', width: 5 },
-            { header: 'Date', key: 'Date', width: 10 },
-            { header: 'Session ID', key: 'sessionId', width: 15 },
-            { header: 'Phone number', key: 'phoneNumber', width: 15 },
+            { header: 'SI', key: 'SI', width: 5, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Date', key: 'Date', width: 10, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Session ID', key: 'sessionId', width: 15, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Phone number', key: 'phoneNumber', width: 15, style: { alignment: { horizontal: 'center' } } },
 
             // Learning
-            { header: 'Language selected', key: 'languageSelected', width: 25 },
-            { header: 'Learning Time taken', key: 'learningtimeTaken', width: 20 },
-            { header: 'Learning completion Status', key: 'learningcompletionStatus', width: 25 },
+            { header: 'Language selected', key: 'languageSelected', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Learning Time taken', key: 'learningtimeTaken', width: 20, style: { alignment: { horizontal: 'center' } } },
 
             // Evaluation
-            { header: 'Total time taken for evaluation', key: 'evaluationtotalTime', width: 28 },
-            { header: 'Total time (Test 1)', key: 'evaluationtest1totalTime', width: 25 },
-            { header: 'Response time (Test 1)', key: 'evaluationtest1responseTime', width: 25 },
-            { header: 'Extinguishment time (Test 1)', key: 'evaluationtest1extinguishmentTime', width: 25 },
-            { header: 'Total time (Test 2)', key: 'evaluationtest2totalTime', width: 25 },
-            { header: 'Response time (Test 2)', key: 'evaluationtest2responseTime', width: 25 },
+            { header: 'Total time taken for evaluation', key: 'evaluationtotalTime', width: 28, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Total time (Test 1)', key: 'evaluationtest1totalTime', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Response time (Test 1)', key: 'evaluationtest1responseTime', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Extinguishment time (Test 1)', key: 'evaluationtest1extinguishmentTime', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Total time (Test 2)', key: 'evaluationtest2totalTime', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Response time (Test 2)', key: 'evaluationtest2responseTime', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'evaluation completion Status', key: 'evaluationcompletionStatus', width: 25, style: { alignment: { horizontal: 'center' } } },
+
 
         ];
 
@@ -297,13 +325,12 @@ const fireExtinguisherExcel = async (req, res) => {
 
             rowData.learning.forEach((learningData) => {
                 row.languageSelected = learningData.languageSelected
-                row.learningcompletionStatus = learningData.completionStatus
                 row.learningtimeTaken = learningData.timeTaken
             });
 
             rowData.evaluation.forEach((evaluationData) => {
                 row.evaluationtotalTime = evaluationData.timeTaken
-
+                row.evaluationcompletionStatus = evaluationData.completionStatus
                 if (evaluationData.test1) {
                     row.evaluationtest1totalTime = evaluationData.test1.totalTime;
                     row.evaluationtest1responseTime = evaluationData.test1.responseTime;
@@ -327,8 +354,6 @@ const fireExtinguisherExcel = async (req, res) => {
             worksheet.addRow(row);
         });
 
-
-
         // Set up the response headers for Excel file download
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', 'attachment; filename=FireExtinguisherData.xlsx');
@@ -344,4 +369,274 @@ const fireExtinguisherExcel = async (req, res) => {
     }
 }
 
-module.exports = { fireExtinguisherIndex, fireExtinguisherExcel };
+const workAtHeightIndex = async (req, res) => {
+
+    const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+    const companyId = req.body.company_id;
+
+    if (!isValidObjectId(companyId)) {
+        res.status(400).send({ message: 'Invalid company ID format' });
+        return;
+    }
+
+    // Validate companyId
+    if (!companyId || typeof companyId !== 'string') {
+        return res.status(400).send({ message: 'Invalid or missing company_id in the request body.' });
+    }
+    const companyDetails = await Company.findOne({ _id: new ObjectId(companyId) });
+
+    if (!companyDetails) {
+        return res.status(400).send({ message: 'company_id not found!.' });
+    }
+
+    try {
+        const result = await Trainee.aggregate([
+            {
+                $match: {
+                    company: new ObjectId(companyId),
+                    type: "work-at-height"
+                }
+            },
+            {
+                $lookup: {
+                    from: "learnings",
+                    localField: "sessionId",
+                    foreignField: "sessionId",
+                    as: "learning"
+                }
+            },
+            {
+                $lookup: {
+                    from: "workatheigthevaluations",
+                    localField: "sessionId",
+                    foreignField: "sessionId",
+                    as: "workatheigthevaluation"
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    sessionId: 1,
+                    phoneNumber: 1,
+                    company: 1,
+                    CreatedOn: 1,
+                    learning: {
+                        timeTaken: 1,
+                        languageSelected: 1,
+                    },
+                    workatheigthevaluation: {
+                        timeTaken: 1,
+                        score: 1,
+                        completionStatus: 1
+                    },
+                }
+            }
+        ]);
+        // Total Training Completed
+        const totalTrainingCompleted = result.reduce((total, trainee) => {
+            const completionStatus = trainee.workatheigthevaluation;
+            return total + completionStatus.filter(data => data.completionStatus === "Complete").length;
+        }, 0);
+
+
+        // Learning Time Taken
+        const learningTimeTakenInHours = await processLearningTime(result);
+
+        // Height Evaluation Time Taken
+        const evaluationTimeTakenInHours = await processHeightEvaluationTime(result);
+
+        // Total Hours Trained
+        const restotalTimeTaken = learningTimeTakenInHours + evaluationTimeTakenInHours;
+        const totalHoursTrained = Number(restotalTimeTaken.toFixed(1));
+
+        // Readiness Percentage
+        const totalNumberOFSessions = Math.round((totalTrainingCompleted / result.length) * 100);
+
+        const readinessPercentage = totalNumberOFSessions || 0;
+
+        // Average score
+        const averageScore = calculateAverageScore(result);
+
+        res.send({
+            message: 'Success',
+            data: {
+                // result
+                companyDetails,
+                totalTrainingCompleted,
+                totalHoursTrained,
+                readinessPercentage,
+                averageScore
+            }
+        });
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+
+}
+
+const calculateAverageScore = (result) => {
+    let totalNumerator = 0;
+    let totalDenominator = 0;
+
+    result.forEach((trainee) => {
+        const workatheigthevaluation = trainee.workatheigthevaluation || [];
+        workatheigthevaluation.forEach((evaluation) => {
+            const [numerator, denominator] = evaluation.score.split('/').map(Number);
+            totalNumerator += numerator;
+            totalDenominator += denominator;
+        });
+    });
+
+    const averageNumerator = totalNumerator / result.length;
+    const averageDenominator = totalDenominator / result.length;
+
+    const averageScore = `${averageNumerator}/${averageDenominator}`;
+
+    return averageScore;
+};
+
+const workAtHeightExcel = async (req, res) => {
+    try {
+        const companyId = req.body.company_id;
+        const month = req.body.month;
+        const year = req.body.year;
+
+        // Validate companyId
+        if (!companyId || typeof companyId !== 'string') {
+            return res.status(400).send({ message: 'Invalid or missing company_id in the request body.' });
+        }
+
+        // Validate month
+        const monthNumber = parseInt(month, 10);
+        if (!month || isNaN(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+            return res.status(400).send({ message: 'Invalid or missing month in the request body.' });
+        }
+
+        // Validate year
+        const yearNumber = parseInt(year, 10);
+        if (!year || isNaN(yearNumber) || yearNumber < 1900 || yearNumber > 2100) {
+            return res.status(400).send({ message: 'Invalid or missing year in the request body.' });
+        }
+        const result = await Trainee.aggregate([
+            {
+                $match: {
+                    company: new ObjectId(companyId),
+                    type: "work-at-height"
+                }
+            },
+            {
+                $lookup: {
+                    from: "learnings",
+                    localField: "sessionId",
+                    foreignField: "sessionId",
+                    as: "learning"
+                }
+            },
+            {
+                $lookup: {
+                    from: "workatheigthevaluations",
+                    localField: "sessionId",
+                    foreignField: "sessionId",
+                    as: "workatheigthevaluation"
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    sessionId: 1,
+                    phoneNumber: 1,
+                    company: 1,
+                    CreatedOn: 1,
+                    learning: {
+                        timeTaken: 1,
+                        languageSelected: 1,
+                    },
+                    workatheigthevaluation: {
+                        timeTaken: 1,
+                        score: 1,
+                        completionStatus: 1
+                    },
+                }
+            },
+            {
+                $match: {
+                    $expr: {
+                        $and: [
+                            { $eq: [{ $year: "$CreatedOn" }, parseInt(year)] },
+                            { $eq: [{ $month: "$CreatedOn" }, parseInt(month)] }
+                        ]
+                    }
+                }
+            }
+        ]);
+        // Create a new Excel workbook and add a worksheet
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('FireExtinguisherData');
+
+        // Define the worksheet columns with custom headers
+        const columns = [
+            // Trainee Data
+            { header: 'SI', key: 'SI', width: 5, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Date', key: 'Date', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Session ID', key: 'sessionId', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Phone number', key: 'phoneNumber', width: 25, style: { alignment: { horizontal: 'center' } } },
+
+            // Learning
+            { header: 'Language selected', key: 'languageSelected', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Learning Time taken', key: 'learningtimeTaken', width: 25, style: { alignment: { horizontal: 'center' } } },
+
+            // Evaluation
+            { header: 'Evaluation time taken', key: 'evaluationtotalTime', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Score', key: 'score', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'Completion Status', key: 'completionStatus', width: 25, style: { alignment: { horizontal: 'center' } } },
+        ];
+
+
+        // Set the worksheet columns
+        worksheet.columns = columns;
+
+        // Add the data to the worksheet
+        result.forEach((rowData, index) => {
+            const row = {};
+
+            // Assuming 'CreatedOn' is the date field in your result
+            const formattedDate = rowData.CreatedOn ? rowData.CreatedOn.toISOString().slice(0, 10) : '';
+
+            // Assigning values to custom keys for formatting
+            row.SI = index + 1;
+            row.Date = formattedDate;
+            row.sessionId = rowData.sessionId;
+            row.phoneNumber = rowData.phoneNumber;
+
+            rowData.learning.forEach((learningData) => {
+                row.languageSelected = learningData.languageSelected
+                row.learningtimeTaken = learningData.timeTaken
+            });
+
+            rowData.workatheigthevaluation.forEach((evaluationData) => {
+                row.score = evaluationData.score
+                row.evaluationtotalTime = evaluationData.timeTaken
+                row.completionStatus = evaluationData.completionStatus
+            });
+
+            worksheet.addRow(row);
+        });
+
+        // Set up the response headers for Excel file download
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=workAtHeight.xlsx');
+
+        // Write the Excel workbook to the response stream
+        await workbook.xlsx.write(res);
+
+        // End the response after writing the workbook
+        res.end();
+
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+
+}
+
+
+module.exports = { fireExtinguisherIndex, fireExtinguisherExcel, workAtHeightIndex, workAtHeightExcel };

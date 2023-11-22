@@ -3,7 +3,7 @@ const validateTime = require('../../Validators/timeValidator');
 // Create or update an evaluation entry
 const createOrUpdateEvaluation = async (req, res) => {
     try {
-        const { sessionId, timeTaken, test1, test2 } = req.body;
+        const { sessionId, timeTaken, test1, test2, completionStatus } = req.body;
 
         if (!sessionId || !test1 || !test2) {
             const missingFields = [];
@@ -74,7 +74,7 @@ const createOrUpdateEvaluation = async (req, res) => {
             return res.status(200).json({ message: 'Evaluation updated successfully', data: existingEvaluation });
         } else {
             // Create a new evaluation entry
-            const newEvaluation = new Evaluation({ sessionId, timeTaken, test1, test2 });
+            const newEvaluation = new Evaluation({ sessionId, timeTaken, test1, test2, completionStatus });
             await newEvaluation.save();
             return res.status(201).json({ message: 'New evaluation created successfully', data: newEvaluation });
         }

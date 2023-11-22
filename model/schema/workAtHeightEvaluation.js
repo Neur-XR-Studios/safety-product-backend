@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const learning = new mongoose.Schema({
+const workAtHeigthEvaluation = new mongoose.Schema({
     sessionId: {
         type: Number,
         required: [true, 'Trainee Session ID is required'],
@@ -9,13 +9,17 @@ const learning = new mongoose.Schema({
             message: 'Trainee Session ID must be an integer',
         },
     },
-    languageSelected: {
+    score: {
         type: String,
         required: true,
-        default: 'English',
     },
     timeTaken: {
         type: String,
+        required: true,
+    },
+    completionStatus: {
+        type: String,
+        enum: ['Complete', 'Incomplete'],
         required: true,
     },
     CreatedOn: {
@@ -24,6 +28,5 @@ const learning = new mongoose.Schema({
     }
 });
 
-const Learning = mongoose.model('Learning', learning);
 
-module.exports = Learning;
+module.exports = mongoose.model('workAtHeigthEvaluation', workAtHeigthEvaluation);

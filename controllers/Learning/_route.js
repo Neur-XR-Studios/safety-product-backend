@@ -5,9 +5,8 @@ const router = express.Router();
 
 
 router.get('/', LearningController.getAllLearning);
-router.get('/view/:id', LearningController.getLearningById);
-router.post('/add', LearningController.createLearning);
-router.put('/update/:id', LearningController.updateLearningById);
-router.delete('/delete/:id', LearningController.deleteLearningById);
+router.get('/:sessionId', LearningController.getLearningById);
+router.post('/', LearningController.createLearning);
+router.delete('/:sessionId', LearningController.deleteLearningById);
 
 module.exports = router;
