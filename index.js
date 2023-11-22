@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 // app.use(cors())
 const corsOptions = {
     origin: 'https://videoloader.s3.ap-south-1.amazonaws.com',
-    optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+    optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
@@ -23,7 +23,52 @@ app.use('/api', route);
 
 app.get('/', async (req, res) => {
 
-    res.send('Welcome to safety-products')
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Welcome to Safety Products</title>
+            <style>
+                body {
+                    font-family: 'Arial', sans-serif;
+                    background-color: #f4f4f4;
+                    text-align: center;
+                    margin: 50px;
+                }
+
+                h1 {
+                    color: #333;
+                    font-size: 60px;
+                }
+
+                p {
+                    color: #666;
+                    font-size: 40px;
+                }
+
+                footer {
+                    margin-top: 50px;
+                    color: #999;
+                    font-size: 20px;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Welcome to Safety Products</h1>
+            <p>Explore our range of safety products to ensure a secure workplace.</p>
+            <p>Stay safe and secure!</p>
+
+            <footer>
+                @neurindustries
+            </footer>
+        </body>
+        </html>
+    `;
+
+
+    res.send(htmlContent);
 
 });
 
