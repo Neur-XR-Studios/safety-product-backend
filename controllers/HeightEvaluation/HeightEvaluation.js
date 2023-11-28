@@ -45,7 +45,7 @@ const createOrUpdate = async (req, res) => {
         let evaluation = await WorkAtHeight.findOne({ sessionId });
 
         let totalTimeTaken = '00:00';
-  
+
         if (startTime && endTime) {
             const startTimeObj = new Date(startTime);
             const endTimeObj = new Date(endTime);
@@ -53,8 +53,10 @@ const createOrUpdate = async (req, res) => {
             const timeDifferenceInSeconds = Math.floor((endTimeObj - startTimeObj) / 1000);
 
             const minutes = Math.floor(timeDifferenceInSeconds / 60);
+            const paddedMinutes = String(minutes).padStart(2, '0');
             const seconds = timeDifferenceInSeconds % 60;
-            totalTimeTaken = `${minutes}:${seconds}`;
+            const paddedSeconds = String(seconds).padStart(2, '0');
+            totalTimeTaken = `${paddedMinutes}:${paddedSeconds}`;
         }
 
         let status = "Incomplete"
