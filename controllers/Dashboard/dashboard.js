@@ -82,7 +82,7 @@ function calculateAverageResponseTime(result, test) {
 }
 
 const fireExtinguisherIndex = async (req, res) => {
-
+    
     const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
     const companyId = req.body.company_id;
 
