@@ -71,7 +71,6 @@ app.get('/', async (req, res) => {
         </head>
         <body>
             <h1>Welcome to Safety Products</h1>
-            <p>Explore our range of safety products to ensure a secure workplace.</p>
             <p>Stay safe and secure!</p>
 
             <footer>

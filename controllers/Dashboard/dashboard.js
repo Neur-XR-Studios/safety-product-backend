@@ -482,6 +482,7 @@ const calculateAverageScore = (result) => {
         const workatheigthevaluation = trainee.workatheigthevaluation || [];
         workatheigthevaluation.forEach((evaluation) => {
             const [numerator, denominator] = evaluation.score.split('/').map(Number);
+
             totalNumerator += numerator;
             totalDenominator += denominator;
         });
