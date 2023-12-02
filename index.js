@@ -27,7 +27,7 @@ app.use(bodyParser.json());
 // Set up CORS  
 // app.use(cors())
 const corsOptions = {
-    origin: 'https://videoloader.s3.ap-south-1.amazonaws.com/*',
+    origin: '*',
     optionsSuccessStatus: 200,
 };
 
