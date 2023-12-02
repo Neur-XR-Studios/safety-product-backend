@@ -1,4 +1,5 @@
-const auth = require('../../middleware/auth')
+const auth = require('../../middleware/auth');
+const Company = require('../../model/schema/company');
 const User = require('../../model/schema/user');
 const bcrypt = require('bcrypt');
 
@@ -70,8 +71,34 @@ const login = async (req, res) => {
   }
 };
 
+const activationCode = async (req, res) => {
+  try {
+    const { activationCode } = req.body
+    const user = req.user;
+    const companyID = user.company._id;
+    const company = await Company.findById(companyID);
+    const ActivationCode = company.activateCode;
 
+    if (company.isSubscribed === true) {
+      return res.status(200).json({ message: "🔥🔥 Already subscribed 🔥🔥" });
+    }
+
+    if (activationCode === ActivationCode) {
+      company.isSubscribed = true;
+      company.lastActivationDate = new Date().toLocaleDateString('en-US')
+      company.save();
+    } else if (activationCode !== ActivationCode) {
+      return res.status(200).json({ message: "Invalid Code" });
+    }
+
+    return res.status(200).json({ message: "Code Activated" });
+
+  } catch (error) {
+
+  }
+}
 
 module.exports = {
-  login
+  login,
+  activationCode
 };

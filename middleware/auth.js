@@ -32,6 +32,11 @@ exports.authorize = function (roles = []) {
         const userRole = decodedToken.role;
         // Check if the user has an admin role
         if (userRole === "admin") {
+
+          if (req.path === "/activation") {
+            req.user = decodedToken;
+            return next();
+          }
           const isSubscribed = await checkAdminSubscription(decodedToken.company);
 
           if (!isSubscribed) {

@@ -31,6 +31,9 @@ const company = new mongoose.Schema({
         required: true,
         unique: true
     },
+    lastActivationDate: {
+        type: Date,
+    },
     deleted: {
         type: Boolean,
         default: false,
