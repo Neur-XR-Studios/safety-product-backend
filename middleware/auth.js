@@ -49,12 +49,6 @@ exports.issueToken = function (user) {
   return token;
 };
 
-// exports.Roles = {
-//   User: ["user"],
-//   Admin: ["admin"],
-//   All: ["user", "admin"],
-// };
-
 exports.Roles = {
   superAdmin: ["superadmin"],
   Admin: ["admin"],

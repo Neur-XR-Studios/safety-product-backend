@@ -8,6 +8,10 @@ const company = new mongoose.Schema({
         unique: true
     },
     phoneNumber: { type: Number },
+    products: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TrainingType',
+    }],
     isSubscribed: {
         type: Boolean,
         default: false,
@@ -21,6 +25,11 @@ const company = new mongoose.Schema({
     },
     subscriptionEndingOn: {
         type: Date,
+    },
+    activateCode: {
+        type: String,
+        required: true,
+        unique: true
     },
     deleted: {
         type: Boolean,

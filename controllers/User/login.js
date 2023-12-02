@@ -7,7 +7,15 @@ const login = async (req, res) => {
     const { username, password } = req.body;
     const query = { username };
 
-    const result = await User.findOne(query);
+    const result = await User.findOne(query).populate({
+      path: 'company',
+      populate: {
+        path: 'products',
+        model: 'TrainingType',
+        select: 'name',
+      },
+    });
+
 
     // No record found for the given username
     if (!result) {
@@ -36,7 +44,26 @@ const login = async (req, res) => {
     delete user.password;
 
     const token = auth.issueToken(user);
-    return res.status(200).json({ message: "Login Success", data: { username: user.username, role: user.role }, token });
+    let companyname = "";
+    let active = false;
+    let products = [];
+
+    if (user.company) {
+      companyname = user.company.name || "";
+      active = user.company.isSubscribed || false;
+      products = user.company.products || [];
+    }
+    return res.status(200).json({
+      message: "Login Success",
+      data: {
+        username: user.username,
+        role: user.role,
+        companyname,
+        active,
+        products
+      },
+      token
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal Server Error" });

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const User = require('../model/schema/user');
+const TrainingType = require('../model/schema/trainingType')
 const bcrypt = require('bcrypt');
 
 const connectDB = async (DATABASE_URL, DATABASE) => {
@@ -40,6 +41,23 @@ const connectDB = async (DATABASE_URL, DATABASE) => {
         }
 
         console.log("Database Connected Successfully..");
+
+        // products create if not
+        const productNames = ['fire-extinguisher', 'work-at-height'];
+        const productsCheck = await TrainingType.find({
+            name: { $in: productNames }
+        });
+        for (const productName of productNames) {
+            const productExists = productsCheck.some(product => product.name == productName);
+
+            if (!productExists) {
+                await TrainingType.create({ name: productName });
+                console.log(` ${productName} created.`);
+            } else {
+                console.log(`existing products are ${productName}.`);
+            }
+        }
+
     } catch (err) {
         console.log("Database Not connected", err.message);
     }
