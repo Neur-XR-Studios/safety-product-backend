@@ -1,6 +1,5 @@
 const express = require('express');
 const TrainingType = require('./trainingType');
-
 const router = express.Router();
 
 router.get('/', TrainingType.getTrainingTypes);

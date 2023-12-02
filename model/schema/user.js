@@ -19,6 +19,10 @@ const user = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    role: {
+        type: String,
+        default: false,
+    },
     company: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',

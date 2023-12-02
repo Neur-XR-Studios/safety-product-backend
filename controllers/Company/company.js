@@ -1,17 +1,33 @@
 const Company = require('../../model/schema/company');
-
+const User = require('../../model/schema/user');
+const bcrypt = require('bcrypt');
 
 const createCompany = async (req, res) => {
     try {
         const companyData = req.body;
+        const uerName = req.body.username;
+        const password = req.body.password;
         const newCompany = new Company(companyData);
         const savedCompany = await newCompany.save();
+
+        // Create a default admin user
+        const adminUserData = {
+            username: uerName,
+            password: await bcrypt.hash(password, 10),
+            role: 'admin',
+            company: savedCompany._id,
+        };
+
+        const newAdminUser = new User(adminUserData);
+        await newAdminUser.save();
+
         res.status(201).json(savedCompany);
     } catch (error) {
         console.error('Failed to create company:', error);
-        res.status(400).json({ error: 'Failed to create company' });
+        res.status(400).json({ message: 'Failed to create company', error: error.message });
     }
 };
+
 
 const getAllCompanies = async (req, res) => {
     try {

@@ -21,14 +21,14 @@ const connectDB = async (DATABASE_URL, DATABASE) => {
             const lastName = 'Industries';
             const username = 'superadmin@neurindustries.com';
             const password = 'superadmin@123';
-
             const is_superadmin = true;
+            const role = 'superadmin';
 
             // Hash the password
             const hashedPassword = await bcrypt.hash(password, 10);
 
             // Create a new user
-            const user = new User({ username, password: hashedPassword, firstName, lastName, is_superadmin, phoneNumber, role: 'super admin' });
+            const user = new User({ username, password: hashedPassword, firstName, lastName, is_superadmin, phoneNumber, role });
 
             // Save the user to the database
             await user.save();

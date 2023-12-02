@@ -82,17 +82,12 @@ function calculateAverageResponseTime(result, test) {
 }
 
 const fireExtinguisherIndex = async (req, res) => {
-    
-    const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
-    const companyId = req.body.company_id;
 
-    if (!isValidObjectId(companyId)) {
-        res.status(400).send({ message: 'Invalid company ID format' });
-        return;
-    }
+    const adminInfo = req.user;
+    const companyID = adminInfo.company;
 
     try {
-        const companyDetails = await Company.findOne({ _id: new ObjectId(companyId) });
+        const companyDetails = await Company.findOne({ _id: companyID });
         if (!companyDetails) {
             res.status(404).send({ message: 'Company not found' });
             return;
@@ -101,7 +96,7 @@ const fireExtinguisherIndex = async (req, res) => {
         const result = await Trainee.aggregate([
             {
                 $match: {
-                    company: new ObjectId(companyId),
+                    company: new ObjectId(companyID),
                     type: "fire-extinguisher"
                 }
             },
@@ -195,14 +190,11 @@ const fireExtinguisherExcel = async (req, res) => {
 
 
     try {
-        const companyId = req.body.company_id;
+        const adminInfo = req.user;
+        const companyId = adminInfo.company;
         const month = req.body.month;
         const year = req.body.year;
 
-        // Validate companyId
-        if (!companyId || typeof companyId !== 'string') {
-            return res.status(400).send({ message: 'Invalid or missing company_id in the request body.' });
-        }
 
         // Validate month
         const monthNumber = parseInt(month, 10);
@@ -371,18 +363,9 @@ const fireExtinguisherExcel = async (req, res) => {
 
 const workAtHeightIndex = async (req, res) => {
 
-    const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
-    const companyId = req.body.company_id;
+    const adminInfo = req.user;
+    const companyId = adminInfo.company;
 
-    if (!isValidObjectId(companyId)) {
-        res.status(400).send({ message: 'Invalid company ID format' });
-        return;
-    }
-
-    // Validate companyId
-    if (!companyId || typeof companyId !== 'string') {
-        return res.status(400).send({ message: 'Invalid or missing company_id in the request body.' });
-    }
     const companyDetails = await Company.findOne({ _id: new ObjectId(companyId) });
 
     if (!companyDetails) {
@@ -498,14 +481,10 @@ const calculateAverageScore = (result) => {
 
 const workAtHeightExcel = async (req, res) => {
     try {
-        const companyId = req.body.company_id;
+        const adminInfo = req.user;
+        const companyId = adminInfo.company;
         const month = req.body.month;
         const year = req.body.year;
-
-        // Validate companyId
-        if (!companyId || typeof companyId !== 'string') {
-            return res.status(400).send({ message: 'Invalid or missing company_id in the request body.' });
-        }
 
         // Validate month
         const monthNumber = parseInt(month, 10);
