@@ -26,6 +26,9 @@ const isSessionIdUnique = async (sessionId) => {
 };
 
 const add = async (req, res) => {
+    const adminInfo = req.user;
+    const companyID = adminInfo.company._id;
+
     try {
 
         if (req.body.type !== null && req.body.type !== undefined) {
@@ -49,7 +52,7 @@ const add = async (req, res) => {
                     { new: true }
                 );
                 const data = {
-                    traineeID: updatedTrainee._id, sessionId: updatedTrainee.sessionId, companyId: updatedTrainee.company
+                    traineeID: updatedTrainee._id, sessionId: updatedTrainee.sessionId, companyId: companyID
                 }
                 return res.status(200).json({ message: 'Trainee Updated Successfully', data });
             }
@@ -63,7 +66,7 @@ const add = async (req, res) => {
         const trainee = new Trainee(traineeData);
         await trainee.save();
         const data = {
-            traineeID: trainee._id, sessionId: trainee.sessionId, companyId: trainee.company, Type: trainee.type
+            traineeID: trainee._id, sessionId: trainee.sessionId, companyId: companyID, Type: trainee.type
         }
         res.status(200).json({ message: 'Trainee Added Successfully', data: data });
     } catch (error) {

@@ -28,10 +28,6 @@ const trainee = new mongoose.Schema({
         type: String,
         required: true
     },
-    roles: {
-        type: Number,
-        required: true
-    },
     CreatedOn: {
         type: Date,
         default: Date.now,

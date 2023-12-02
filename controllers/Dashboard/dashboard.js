@@ -84,7 +84,7 @@ function calculateAverageResponseTime(result, test) {
 const fireExtinguisherIndex = async (req, res) => {
 
     const adminInfo = req.user;
-    const companyID = adminInfo.company;
+    const companyID = adminInfo.company._id;
 
     try {
         const companyDetails = await Company.findOne({ _id: companyID });
@@ -191,7 +191,7 @@ const fireExtinguisherExcel = async (req, res) => {
 
     try {
         const adminInfo = req.user;
-        const companyId = adminInfo.company;
+        const companyId = adminInfo.company._id;
         const month = req.body.month;
         const year = req.body.year;
 
@@ -364,7 +364,7 @@ const fireExtinguisherExcel = async (req, res) => {
 const workAtHeightIndex = async (req, res) => {
 
     const adminInfo = req.user;
-    const companyId = adminInfo.company;
+    const companyId = adminInfo.company._id;
 
     const companyDetails = await Company.findOne({ _id: new ObjectId(companyId) });
 
@@ -482,7 +482,7 @@ const calculateAverageScore = (result) => {
 const workAtHeightExcel = async (req, res) => {
     try {
         const adminInfo = req.user;
-        const companyId = adminInfo.company;
+        const companyId = adminInfo.company._id;
         const month = req.body.month;
         const year = req.body.year;
 
