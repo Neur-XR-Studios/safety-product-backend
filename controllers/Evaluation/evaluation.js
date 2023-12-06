@@ -3,7 +3,7 @@ const validateTime = require('../../Validators/timeValidator');
 // Create or update an evaluation entry
 const createOrUpdateEvaluation = async (req, res) => {
     try {
-        const { sessionId, timeTaken, test1, test2, completionStatus } = req.body;
+        const { sessionId, timeTaken, test1, test2, completionStatus, totalSessionTime } = req.body;
 
         if (!sessionId || !test1 || !test2) {
             const missingFields = [];
@@ -57,10 +57,17 @@ const createOrUpdateEvaluation = async (req, res) => {
             }
         }
 
+        if (totalSessionTime) {
+            const timeToValidate = totalSessionTime;
+            const timeValidationResult = validateTime(timeToValidate);
+            if (timeValidationResult === 0) {
+                return res.status(400).json({ message: 'Failed to create or update Evaluation', error: `Time is not valid. Please use the format mm:ss in ${totalSessionTime}.` });
+            }
+        }
+
         if (typeof sessionId !== 'number') {
             return res.status(400).json({ message: 'sessionId must be a number' });
         }
-
 
         const existingEvaluation = await Evaluation.findOne({ sessionId });
 
@@ -74,7 +81,7 @@ const createOrUpdateEvaluation = async (req, res) => {
             return res.status(200).json({ message: 'Evaluation updated successfully', data: existingEvaluation });
         } else {
             // Create a new evaluation entry
-            const newEvaluation = new Evaluation({ sessionId, timeTaken, test1, test2, completionStatus });
+            const newEvaluation = new Evaluation({ sessionId, timeTaken, test1, test2, completionStatus, totalSessionTime });
             await newEvaluation.save();
             return res.status(201).json({ message: 'New evaluation created successfully', data: newEvaluation });
         }
@@ -83,8 +90,6 @@ const createOrUpdateEvaluation = async (req, res) => {
         return res.status(500).json({ message: 'Failed to create/update evaluation', error: error.message });
     }
 };
-
-
 
 // Retrieve all evaluations
 const getAllEvaluations = async (req, res) => {
@@ -119,7 +124,6 @@ const updateEvaluationBySessionId = async (req, res) => {
     try {
         const sessionId = req.params.sessionId;
         const { timeTaken, test1, test2 } = req.body;
-
 
         const evaluation = await Evaluation.findOne({ sessionId });
 
@@ -156,6 +160,8 @@ const deleteEvaluationBySessionId = async (req, res) => {
         res.status(500).json({ message: 'Failed to delete evaluation by session ID', error: error.message });
     }
 };
+
+
 
 module.exports = {
     createOrUpdateEvaluation,

@@ -31,6 +31,9 @@ const evaluation = new mongoose.Schema({
             type: String,
         }
     },
+    totalSessionTime :{
+        type: String,
+    },
     completionStatus: {
         type: String,
         enum: ['Complete', 'Incomplete'],

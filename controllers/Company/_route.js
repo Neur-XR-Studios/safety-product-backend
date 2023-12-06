@@ -9,5 +9,6 @@ router.get('/view/:id', auth.authorize(Roles.superAdmin), CompanyController.view
 router.post('/add', auth.authorize(Roles.superAdmin), CompanyController.createCompany);
 router.put('/update/:id', auth.authorize(Roles.superAdmin), CompanyController.updateCompany);
 router.delete('/delete/:id', auth.authorize(Roles.superAdmin), CompanyController.deleteCompanyAndUsers);
+router.post('/subscription-status/:id', auth.authorize(Roles.superAdmin), CompanyController.updateCompanySubscription);
 
 module.exports = router;

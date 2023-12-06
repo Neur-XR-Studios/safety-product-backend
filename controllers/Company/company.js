@@ -2,11 +2,18 @@ const Company = require('../../model/schema/company');
 const User = require('../../model/schema/user');
 const TrainingType = require('../../model/schema/trainingType')
 const bcrypt = require('bcrypt');
+const activationCode = require('../../model/schema/activationCode')
 const mongoose = require('mongoose');
 
 const createCompany = async (req, res) => {
     try {
         const { name, phoneNumber, username, password, products, activateCode } = req.body;
+
+        const isActivationCode = await activationCode.findOne({ code: activateCode });
+        const existingCode = await Company.findOne({ activateCode: activateCode });
+        if (isActivationCode == activateCode || existingCode) {
+            return res.status(400).json({ message: 'Activation Code already exists.' });
+        }
 
         const existingCompanyByName = await Company.findOne({ name });
         if (existingCompanyByName) {
@@ -27,6 +34,12 @@ const createCompany = async (req, res) => {
         const newCompany = new Company(companyData);
         const savedCompany = await newCompany.save();
         await newCompany.validate();
+
+        const codeData = {
+            code: savedCompany.activateCode
+        }
+        const newCode = new activationCode(codeData);
+        await newCode.save();
 
         const adminUserData = {
             username: username,
@@ -180,50 +193,62 @@ const viewCompanyById = async (req, res) => {
 
 
 const updateCompany = async (req, res) => {
-    try {
-        const companyId = req.params.id;
-        const updateData = req.body;
+    // try {
+    const companyId = req.params.id;
+    const updateData = req.body;
 
-        const existingCompany = await Company.findById(companyId);
-        if (!existingCompany) {
-            return res.status(404).json({ message: 'Company not found' });
-        }
-
-        for (const key in updateData) {
-            existingCompany[key] = updateData[key];
-        }
-
-        const updatedCompany = await existingCompany.save();
-
-        if (updateData.products) {
-
-            const updatedProducts = await TrainingType.updateMany(
-                { _id: { $in: updateData.products } },
-                { $set: { company: companyId } }
-            );
-        }
-
-
-        if (updateData.userData) {
-            for (const userData of updateData.userData) {
-                const userId = userData._id;
-
-                if (userData.password) {
-                    userData.password = await bcrypt.hash(userData.password, 10);
-                }
-
-                const updateUser = await User.findByIdAndUpdate(userId, { $set: userData }, { new: true });
-            }
-        }
-
-        return res.status(200).json({
-            message: 'Company updated successfully',
-            data: updatedCompany,
-        });
-    } catch (error) {
-        console.error('Failed to update company:', error);
-        res.status(500).json({ message: 'Failed to update company', error: error.message });
+    const existingCompany = await Company.findById(companyId);
+    if (!existingCompany) {
+        return res.status(404).json({ message: 'Company not found' });
     }
+
+    const isActivationCode = await activationCode.findOne({ code: req.body.activateCode });
+    const existingCode = await Company.findOne({ activateCode: req.body.activateCode });
+    if (isActivationCode == req.body.activateCode || existingCode) {
+        return res.status(400).json({ message: 'Activation Code already exists.' });
+    }
+    for (const key in updateData) {
+        existingCompany[key] = updateData[key];
+    }
+
+    const updatedCompany = await existingCompany.save();
+
+    const codeData = {
+        code: updatedCompany.activateCode
+    }
+
+    const newCode = new activationCode(codeData);
+    await newCode.save();
+
+    if (updateData.products) {
+
+        const updatedProducts = await TrainingType.updateMany(
+            { _id: { $in: updateData.products } },
+            { $set: { company: companyId } }
+        );
+    }
+
+
+    if (updateData.userData) {
+        for (const userData of updateData.userData) {
+            const userId = userData._id;
+
+            if (userData.password) {
+                userData.password = await bcrypt.hash(userData.password, 10);
+            }
+
+            const updateUser = await User.findByIdAndUpdate(userId, { $set: userData }, { new: true });
+        }
+    }
+
+    return res.status(200).json({
+        message: 'Company updated successfully',
+        data: updatedCompany,
+    });
+    // } catch (error) {
+    //     console.error('Failed to update company:', error);
+    //     res.status(500).json({ message: 'Failed to update company', error: error.message });
+    // }
 };
 
 
@@ -253,11 +278,43 @@ const deleteCompanyAndUsers = async (req, res) => {
     }
 };
 
+const updateCompanySubscription = async (req, res) => {
+    const companyId = req.params.id;
+    const isSubscribed = req.body.isSubscribed;
+
+    try {
+
+        if (!mongoose.Types.ObjectId.isValid(companyId)) {
+            return res.status(400).json({ error: 'Invalid company ID.' });
+        }
+
+        if (isSubscribed === undefined || typeof isSubscribed !== 'boolean') {
+            return res.status(400).json({ error: 'Invalid value for isSubscribed. It must be a boolean.' });
+        }
+
+        const updatedCompany = await Company.findByIdAndUpdate(
+            companyId,
+            { $set: { isSubscribed } },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedCompany) {
+            return res.status(404).json({ error: 'Company not found.' });
+        }
+
+        return res.json(updatedCompany);
+    } catch (error) {
+
+        console.error('Error updating company subscription:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
 
 module.exports = {
     createCompany,
     getAllCompanies,
     viewCompanyById,
     updateCompany,
-    deleteCompanyAndUsers
+    deleteCompanyAndUsers,
+    updateCompanySubscription
 };
