@@ -3,7 +3,7 @@ const validateTime = require('../../Validators/timeValidator');
 // Create or update an evaluation entry
 const createOrUpdateEvaluation = async (req, res) => {
     try {
-        const { sessionId, timeTaken, test1, test2, completionStatus, totalSessionTime } = req.body;
+        const { sessionId, timeTaken, test1, test2, completionStatus } = req.body;
 
         if (!sessionId || !test1 || !test2) {
             const missingFields = [];
@@ -57,14 +57,6 @@ const createOrUpdateEvaluation = async (req, res) => {
             }
         }
 
-        if (totalSessionTime) {
-            const timeToValidate = totalSessionTime;
-            const timeValidationResult = validateTime(timeToValidate);
-            if (timeValidationResult === 0) {
-                return res.status(400).json({ message: 'Failed to create or update Evaluation', error: `Time is not valid. Please use the format mm:ss in ${totalSessionTime}.` });
-            }
-        }
-
         if (typeof sessionId !== 'number') {
             return res.status(400).json({ message: 'sessionId must be a number' });
         }
@@ -81,7 +73,7 @@ const createOrUpdateEvaluation = async (req, res) => {
             return res.status(200).json({ message: 'Evaluation updated successfully', data: existingEvaluation });
         } else {
             // Create a new evaluation entry
-            const newEvaluation = new Evaluation({ sessionId, timeTaken, test1, test2, completionStatus, totalSessionTime });
+            const newEvaluation = new Evaluation({ sessionId, timeTaken, test1, test2, completionStatus });
             await newEvaluation.save();
             return res.status(201).json({ message: 'New evaluation created successfully', data: newEvaluation });
         }

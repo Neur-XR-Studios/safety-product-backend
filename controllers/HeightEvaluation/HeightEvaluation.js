@@ -1,4 +1,6 @@
 const WorkAtHeight = require('../../model/schema/workAtHeightEvaluation');
+const DateTimeService = require('../../services/datetimeService');
+const dateTimeServiceInstance = new DateTimeService();
 
 // View by ID
 const viewById = async (req, res) => {
@@ -24,39 +26,32 @@ const viewAll = async (req, res) => {
     }
 };
 
-const isValidDateTimeFormat = (dateTimeString) => {
-    const dateTimeRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
-    return dateTimeRegex.test(dateTimeString);
-};
+const validateScore = (score) => score === "5/5" || score === "4/5" || score === "3/5" || score === "2/5" || score === "1/5";
 
 const createOrUpdate = async (req, res) => {
+
     const { sessionId, startTime, endTime, score } = req.body;
 
-    const timeFormat1 = isValidDateTimeFormat(startTime)
-    const timeFormat2 = isValidDateTimeFormat(endTime)
     if (sessionId === null || !Number.isInteger(sessionId)) {
         return res.status(400).json({ message: 'Failed to create or update Learning entry', error: 'Trainee Session ID must be a non-null integer' });
     }
-    if (timeFormat1 != true || timeFormat2 != true) {
-        return res.status(404).json({ message: 'startTime or endTime Not in valid format.' });
+    if (!startTime || !endTime) {
+        return res.status(400).json({ message: 'startTime and endTime are required.' });
     }
-
+    if (!validateScore(score)) {
+        return res.status(400).json({ message: 'Invalid score format.' });
+    }
     try {
         let evaluation = await WorkAtHeight.findOne({ sessionId });
 
         let totalTimeTaken = '00:00';
 
         if (startTime && endTime) {
-            const startTimeObj = new Date(startTime);
-            const endTimeObj = new Date(endTime);
-
-            const timeDifferenceInSeconds = Math.floor((endTimeObj - startTimeObj) / 1000);
-
-            const minutes = Math.floor(timeDifferenceInSeconds / 60);
-            const paddedMinutes = String(minutes).padStart(2, '0');
-            const seconds = timeDifferenceInSeconds % 60;
-            const paddedSeconds = String(seconds).padStart(2, '0');
-            totalTimeTaken = `${paddedMinutes}:${paddedSeconds}`;
+            try {
+                totalTimeTaken = dateTimeServiceInstance.calculateTotalTime(startTime, endTime);
+            } catch (error) {
+                res.status(400).json({ message: error.message });
+            }
         }
 
         let status = "Incomplete"

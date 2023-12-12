@@ -3,6 +3,7 @@ const User = require('../../model/schema/user');
 const TrainingType = require('../../model/schema/trainingType')
 const bcrypt = require('bcrypt');
 const activationCode = require('../../model/schema/activationCode')
+const Trainee = require('../../model/schema/trainee');
 const mongoose = require('mongoose');
 
 const createCompany = async (req, res) => {
@@ -57,7 +58,6 @@ const createCompany = async (req, res) => {
         res.status(400).json({ message: 'Failed to create company', error: error.message });
     }
 };
-
 
 const getAllCompanies = async (req, res) => {
     try {
@@ -118,7 +118,6 @@ const getAllCompanies = async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch companies' });
     }
 };
-
 
 const viewCompanyById = async (req, res) => {
     try {
@@ -191,7 +190,6 @@ const viewCompanyById = async (req, res) => {
     }
 };
 
-
 const updateCompany = async (req, res) => {
     // try {
     const companyId = req.params.id;
@@ -228,7 +226,6 @@ const updateCompany = async (req, res) => {
         );
     }
 
-
     if (updateData.userData) {
         for (const userData of updateData.userData) {
             const userId = userData._id;
@@ -250,8 +247,6 @@ const updateCompany = async (req, res) => {
     //     res.status(500).json({ message: 'Failed to update company', error: error.message });
     // }
 };
-
-
 
 const deleteCompanyAndUsers = async (req, res) => {
     try {
@@ -310,11 +305,117 @@ const updateCompanySubscription = async (req, res) => {
     }
 };
 
+const result = async (req, res) => {
+    const sessionID = req.params.sessionId
+    const sessionIdAsInteger = parseInt(sessionID, 10);
+
+    try {
+        const traineeResult = await Trainee.aggregate([
+            {
+                $match: {
+                    sessionId: sessionIdAsInteger
+                }
+            },
+            {
+                $lookup: {
+                    from: "learnings",
+                    localField: "sessionId",
+                    foreignField: "sessionId",
+                    as: "learning"
+                }
+            },
+            {
+                $lookup: {
+                    from: "sessiontimes",
+                    localField: "sessionId",
+                    foreignField: "sessionId",
+                    as: "sessionTime"
+                }
+            },
+            {
+                $lookup: {
+                    from: "evaluations",  // Default collection
+                    localField: "sessionId",
+                    foreignField: "sessionId",
+                    as: "evaluation"
+                }
+            },
+            {
+                $lookup: {
+                    from: "workatheigthevaluations",  // Work at Height collection
+                    let: { type: "$type", sessionId: "$sessionId" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$$type", "work-at-height"] },
+                                        { $eq: ["$$sessionId", "$sessionId"] }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            $project: {
+                                timeTaken: 1,
+                                score: 1,
+                                completionStatus: 1
+                            }
+                        }
+                    ],
+                    as: "workAtHeightEvaluation"
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    sessionId: 1,
+                    phoneNumber: 1,
+                    company: 1,
+                    CreatedOn: 1,
+                    type: 1,
+                    learning: {
+                        timeTaken: 1,
+                        languageSelected: 1,
+                    },
+                    sessionTime: {
+                        timeTaken: 1
+                    },
+                    evaluation: {
+                        $cond: {
+                            if: { $eq: ["$type", "work-at-height"] },
+                            then: "$workAtHeightEvaluation",
+                            else: "$evaluation"
+                        }
+                    }
+                }
+            }
+        ]);
+
+        if (!traineeResult || traineeResult.length === 0) {
+            return res.status(200).json({
+                message: 'No Results Found',
+            });
+        }
+
+        return res.status(200).json({
+            message: 'Results retrieved successfully',
+            data: traineeResult,
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+
 module.exports = {
     createCompany,
     getAllCompanies,
     viewCompanyById,
     updateCompany,
     deleteCompanyAndUsers,
-    updateCompanySubscription
+    updateCompanySubscription,
+    result
 };

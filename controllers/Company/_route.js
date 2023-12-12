@@ -10,5 +10,6 @@ router.post('/add', auth.authorize(Roles.superAdmin), CompanyController.createCo
 router.put('/update/:id', auth.authorize(Roles.superAdmin), CompanyController.updateCompany);
 router.delete('/delete/:id', auth.authorize(Roles.superAdmin), CompanyController.deleteCompanyAndUsers);
 router.post('/subscription-status/:id', auth.authorize(Roles.superAdmin), CompanyController.updateCompanySubscription);
+router.get('/trainee-result/:sessionId', auth.authorize(Roles.superAdmin), CompanyController.result);
 
 module.exports = router;

@@ -1,6 +1,9 @@
 const Trainee = require('../../model/schema/trainee');
 const crypto = require('crypto');
 const TrainingType = require('../../model/schema/trainingType');
+const sessionTime = require('../../model/schema/sessionTime');
+const DateTimeService = require('../../services/datetimeService');
+const dateTimeServiceInstance = new DateTimeService();
 
 const index = async (req, res) => {
     const query = req.query
@@ -75,4 +78,44 @@ const add = async (req, res) => {
 };
 
 
-module.exports = { index, add };
+const totalSessionTime = async (req, res) => {
+    const startTime = req.body.startTime;
+    const endTime = req.body.endTime;
+    const sessionId = req.body.sessionId;
+    let totalTimeTaken = "00:00";
+    try {
+
+        if (!startTime || !endTime) {
+            return res.status(400).json({ message: 'startTime and endTime are required.' });
+        }
+        if (!sessionId) {
+            return res.status(400).json({ message: 'sessionId is required.' });
+        } else if (isNaN(sessionId)) {
+            return res.status(400).json({ message: 'sessionId must be an integer.' });
+        }
+
+        if (startTime && endTime) {
+            try {
+                totalTimeTaken = dateTimeServiceInstance.calculateTotalTime(startTime, endTime);
+            } catch (error) {
+                res.status(400).json({ message: error.message });
+            }
+        }
+        const session = new sessionTime();
+        session.sessionId = sessionId;
+        session.timeTaken = totalTimeTaken;
+        const result = await session.save();
+
+        res.status(200).json({ message: 'Session Time Noted', data: result, startTime, endTime });
+    } catch (error) {
+        if (error.code == 11000) {
+            res.status(400).json({ message: 'Session ID already exists.', error: error.message });
+        } else {
+            res.status(400).json({ message: 'Failed to Note Session Time', error: error.message });
+        }
+
+    }
+}
+
+
+module.exports = { index, add, totalSessionTime };

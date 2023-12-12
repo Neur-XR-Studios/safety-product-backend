@@ -1,11 +1,8 @@
 const Learning = require('../../model/schema/learning');
 const validateTime = require('../../Validators/timeValidator');
+const DateTimeService = require('../../services/datetimeService');
+const dateTimeServiceInstance = new DateTimeService();
 
-
-const isValidDateTimeFormat = (dateTimeString) => {
-    const dateTimeRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
-    return dateTimeRegex.test(dateTimeString);
-};
 
 const createLearning = async (req, res) => {
     try {
@@ -14,29 +11,18 @@ const createLearning = async (req, res) => {
         if (sessionId === null || !Number.isInteger(sessionId)) {
             return res.status(400).json({ message: 'Failed to create or update Learning entry', error: 'Trainee Session ID must be a non-null integer' });
         }
-
-        const timeFormat1 = isValidDateTimeFormat(startTime)
-        const timeFormat2 = isValidDateTimeFormat(endTime)
-
-        if (timeFormat1 != true || timeFormat2 != true) {
-            return res.status(404).json({ message: 'startTime or endTime Not in valid format.' });
+        if (!startTime || !endTime) {
+            return res.status(400).json({ message: 'startTime and endTime are required.' });
         }
 
         let totalTimeTaken = '00:00';
 
         if (startTime && endTime) {
-            const startTimeObj = new Date(startTime);
-            const endTimeObj = new Date(endTime);
-
-            const timeDifferenceInSeconds = Math.floor((endTimeObj - startTimeObj) / 1000);
-
-            const minutes = Math.floor(timeDifferenceInSeconds / 60);
-            const paddedMinutes = String(minutes).padStart(2, '0');
-
-            const seconds = timeDifferenceInSeconds % 60;
-            const paddedSeconds = String(seconds).padStart(2, '0');
-
-            totalTimeTaken = `${paddedMinutes}:${paddedSeconds}`;
+            try {
+                totalTimeTaken = dateTimeServiceInstance.calculateTotalTime(startTime, endTime);
+            } catch (error) {
+                res.status(400).json({ message: error.message });
+            }
         }
 
         const existingLearning = await Learning.findOne({ sessionId });
