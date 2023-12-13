@@ -297,8 +297,6 @@ const fireExtinguisherExcel = async (req, res) => {
 
         ];
 
-
-
         // Set the worksheet columns
         worksheet.columns = columns;
 

@@ -40,7 +40,8 @@ exports.authorize = function (roles = []) {
           const isSubscribed = await checkAdminSubscription(decodedToken.company);
 
           if (!isSubscribed) {
-            return sendError("Error: Activate your subscription");
+            // return sendError("Error: Activate your subscription");
+            return res.status(400).json({ message: "Activate your subscription", subscription: false });
           }
         }
 

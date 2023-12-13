@@ -20,7 +20,7 @@ const connectDB = async (DATABASE_URL, DATABASE) => {
             const phoneNumber = 7874263694;
             const firstName = 'Neur';
             const lastName = 'Industries';
-            const username = 'superadmin@neurindustries.com';
+            const username = 'neurindustries';
             const password = 'superadmin@123';
             const is_superadmin = true;
             const role = 'superadmin';
@@ -38,6 +38,33 @@ const connectDB = async (DATABASE_URL, DATABASE) => {
             // If admin exists but is marked as deleted, update the deleted flag
             await User.findByIdAndUpdate(adminExisting._id, { deleted: false });
             console.log("Admin updated successfully..");
+        }
+
+        // Check if admin user already exists based on username
+        const guestExisting = await User.findOne({ username: 'guest' });
+
+        if (!adminExisting) {
+            const phoneNumber = 9000090000;
+            const firstName = 'guest';
+            const lastName = 'guest';
+            const username = 'guest';
+            const password = 'guest@123';
+            const is_superadmin = false;
+            const role = 'guest';
+
+            // Hash the password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Create a new user
+            const user = new User({ username, password: hashedPassword, firstName, lastName, is_superadmin, phoneNumber, role });
+
+            // Save the user to the database
+            await user.save();
+            console.log("Guest created successfully..");
+        } else if (guestExisting.deleted === true) {
+            // If admin exists but is marked as deleted, update the deleted flag
+            await User.findByIdAndUpdate(guestExisting._id, { deleted: false });
+            console.log("Guest updated successfully..");
         }
 
         console.log("Database Connected Successfully..");
