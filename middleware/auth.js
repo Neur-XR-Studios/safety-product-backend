@@ -41,7 +41,7 @@ exports.authorize = function (roles = []) {
 
           if (!isSubscribed) {
             // return sendError("Error: Activate your subscription");
-            return res.status(400).json({ message: "Activate your subscription", subscription: false });
+            return res.status(422).json({ message: "Activate your subscription", subscription: false });
           }
         }
 

@@ -191,61 +191,61 @@ const viewCompanyById = async (req, res) => {
 };
 
 const updateCompany = async (req, res) => {
-    // try {
-    const companyId = req.params.id;
-    const updateData = req.body;
+    try {
+        const companyId = req.params.id;
+        const updateData = req.body;
 
-    const existingCompany = await Company.findById(companyId);
-    if (!existingCompany) {
-        return res.status(404).json({ message: 'Company not found' });
-    }
-
-    const isActivationCode = await activationCode.findOne({ code: req.body.activateCode });
-    const existingCode = await Company.findOne({ activateCode: req.body.activateCode });
-    if (isActivationCode == req.body.activateCode || existingCode) {
-        return res.status(400).json({ message: 'Activation Code already exists.' });
-    }
-    for (const key in updateData) {
-        existingCompany[key] = updateData[key];
-    }
-
-    const updatedCompany = await existingCompany.save();
-
-    const codeData = {
-        code: updatedCompany.activateCode
-    }
-
-    const newCode = new activationCode(codeData);
-    await newCode.save();
-
-    if (updateData.products) {
-
-        const updatedProducts = await TrainingType.updateMany(
-            { _id: { $in: updateData.products } },
-            { $set: { company: companyId } }
-        );
-    }
-
-    if (updateData.userData) {
-        for (const userData of updateData.userData) {
-            const userId = userData._id;
-
-            if (userData.password) {
-                userData.password = await bcrypt.hash(userData.password, 10);
-            }
-
-            const updateUser = await User.findByIdAndUpdate(userId, { $set: userData }, { new: true });
+        const existingCompany = await Company.findById(companyId);
+        if (!existingCompany) {
+            return res.status(404).json({ message: 'Company not found' });
         }
-    }
 
-    return res.status(200).json({
-        message: 'Company updated successfully',
-        data: updatedCompany,
-    });
-    // } catch (error) {
-    //     console.error('Failed to update company:', error);
-    //     res.status(500).json({ message: 'Failed to update company', error: error.message });
-    // }
+        const isActivationCode = await activationCode.findOne({ code: req.body.activateCode });
+        const existingCode = await Company.findOne({ activateCode: req.body.activateCode });
+        if (isActivationCode == req.body.activateCode || existingCode) {
+            return res.status(400).json({ message: 'Activation Code already exists.' });
+        }
+        for (const key in updateData) {
+            existingCompany[key] = updateData[key];
+        }
+
+        const updatedCompany = await existingCompany.save();
+
+        const codeData = {
+            code: updatedCompany.activateCode
+        }
+
+        const newCode = new activationCode(codeData);
+        await newCode.save();
+
+        if (updateData.products) {
+
+            const updatedProducts = await TrainingType.updateMany(
+                { _id: { $in: updateData.products } },
+                { $set: { company: companyId } }
+            );
+        }
+
+        if (updateData.userData) {
+            for (const userData of updateData.userData) {
+                const userId = userData._id;
+
+                if (userData.password) {
+                    userData.password = await bcrypt.hash(userData.password, 10);
+                }
+
+                const updateUser = await User.findByIdAndUpdate(userId, { $set: userData }, { new: true });
+            }
+        }
+
+        return res.status(200).json({
+            message: 'Company updated successfully',
+            data: updatedCompany,
+        });
+    } catch (error) {
+        console.error('Failed to update company:', error);
+        res.status(500).json({ message: 'Failed to update company', error: error.message });
+    }
 };
 
 const deleteCompanyAndUsers = async (req, res) => {
