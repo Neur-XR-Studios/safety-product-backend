@@ -124,7 +124,8 @@ const viewCompanyById = async (req, res) => {
     try {
 
         const companyId = req.params.id;
-        const ValidObjectId = ObjectID.isValid(companyId)
+        var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$")
+        const ValidObjectId = checkForHexRegExp.test(companyId)
         if (!ValidObjectId) {
             res.status(400).json({ error: 'Invalid company ID format' });
         }
@@ -199,7 +200,8 @@ const updateCompany = async (req, res) => {
     try {
         const companyId = req.params.id;
         const updateData = req.body;
-        const ValidObjectId = ObjectID.isValid(companyId)
+        var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$")
+        const ValidObjectId = checkForHexRegExp.test(companyId)
         if (!ValidObjectId) {
             res.status(400).json({ error: 'Invalid company ID format' });
         }
@@ -259,7 +261,8 @@ const updateCompany = async (req, res) => {
 const deleteCompanyAndUsers = async (req, res) => {
     try {
         const companyId = req.params.id;
-        const ValidObjectId = ObjectID.isValid(companyId)
+        var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$")
+        const ValidObjectId = checkForHexRegExp.test(companyId)
         if (!ValidObjectId) {
             res.status(400).json({ error: 'Invalid company ID format' });
         }
