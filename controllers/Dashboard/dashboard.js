@@ -310,7 +310,7 @@ const fireExtinguisherExcel = async (req, res) => {
             // Assigning values to custom keys for formatting
             row.SI = index + 1;
             row.Date = formattedDate;
-            row.sessionId = rowData.sessionId;
+            row.sessionId = index + 1000;
             row.phoneNumber = rowData.phoneNumber;
 
             rowData.learning.forEach((learningData) => {
@@ -583,7 +583,7 @@ const workAtHeightExcel = async (req, res) => {
             // Assigning values to custom keys for formatting
             row.SI = index + 1;
             row.Date = formattedDate;
-            row.sessionId = rowData.sessionId;
+            row.sessionId = index + 1000;
             row.phoneNumber = rowData.phoneNumber;
 
             rowData.learning.forEach((learningData) => {

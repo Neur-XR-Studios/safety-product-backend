@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const activationCode = require('../../model/schema/activationCode')
 const Trainee = require('../../model/schema/trainee');
 const mongoose = require('mongoose');
+var ObjectID = require("mongodb").ObjectID
 
 const createCompany = async (req, res) => {
     try {
@@ -121,8 +122,12 @@ const getAllCompanies = async (req, res) => {
 
 const viewCompanyById = async (req, res) => {
     try {
-        const companyId = req.params.id;
 
+        const companyId = req.params.id;
+        const ValidObjectId = ObjectID.isValid(companyId)
+        if (!ValidObjectId) {
+            res.status(400).json({ error: 'Invalid company ID format' });
+        }
         const result = await Company.aggregate([
             {
                 $match: { _id: new mongoose.Types.ObjectId(companyId) },
@@ -194,7 +199,10 @@ const updateCompany = async (req, res) => {
     try {
         const companyId = req.params.id;
         const updateData = req.body;
-
+        const ValidObjectId = ObjectID.isValid(companyId)
+        if (!ValidObjectId) {
+            res.status(400).json({ error: 'Invalid company ID format' });
+        }
         const existingCompany = await Company.findById(companyId);
         if (!existingCompany) {
             return res.status(404).json({ message: 'Company not found' });
@@ -251,7 +259,10 @@ const updateCompany = async (req, res) => {
 const deleteCompanyAndUsers = async (req, res) => {
     try {
         const companyId = req.params.id;
-
+        const ValidObjectId = ObjectID.isValid(companyId)
+        if (!ValidObjectId) {
+            res.status(400).json({ error: 'Invalid company ID format' });
+        }
         const deletedCompany = await Company.findByIdAndDelete(companyId);
 
         if (!deletedCompany) {
