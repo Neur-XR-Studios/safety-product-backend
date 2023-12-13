@@ -28,7 +28,6 @@ const company = new mongoose.Schema({
     },
     activateCode: {
         type: String,
-        required: true,
         unique: true
     },
     lastActivationDate: {

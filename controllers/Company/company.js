@@ -11,11 +11,11 @@ const createCompany = async (req, res) => {
     try {
         const { name, phoneNumber, username, password, products, activateCode } = req.body;
 
-        const isActivationCode = await activationCode.findOne({ code: activateCode });
-        const existingCode = await Company.findOne({ activateCode: activateCode });
-        if (isActivationCode == activateCode || existingCode) {
-            return res.status(400).json({ message: 'Activation Code already exists.' });
-        }
+        // const isActivationCode = await activationCode.findOne({ code: activateCode });
+        // const existingCode = await Company.findOne({ activateCode: activateCode });
+        // if (isActivationCode == activateCode || existingCode) {
+        //     return res.status(400).json({ message: 'Activation Code already exists.' });
+        // }
 
         const existingCompanyByName = await Company.findOne({ name });
         if (existingCompanyByName) {
@@ -37,11 +37,11 @@ const createCompany = async (req, res) => {
         const savedCompany = await newCompany.save();
         await newCompany.validate();
 
-        const codeData = {
-            code: savedCompany.activateCode
-        }
-        const newCode = new activationCode(codeData);
-        await newCode.save();
+        // const codeData = {
+        //     code: savedCompany.activateCode
+        // }
+        // const newCode = new activationCode(codeData);
+        // await newCode.save();
 
         const adminUserData = {
             username: username,
@@ -210,23 +210,23 @@ const updateCompany = async (req, res) => {
             return res.status(404).json({ message: 'Company not found' });
         }
 
-        const isActivationCode = await activationCode.findOne({ code: req.body.activateCode });
-        const existingCode = await Company.findOne({ activateCode: req.body.activateCode });
-        if (isActivationCode == req.body.activateCode || existingCode) {
-            return res.status(400).json({ message: 'Activation Code already exists.' });
-        }
+        // const isActivationCode = await activationCode.findOne({ code: req.body.activateCode });
+        // const existingCode = await Company.findOne({ activateCode: req.body.activateCode });
+        // if (isActivationCode == req.body.activateCode || existingCode) {
+        //     return res.status(400).json({ message: 'Activation Code already exists.' });
+        // }
         for (const key in updateData) {
             existingCompany[key] = updateData[key];
         }
 
         const updatedCompany = await existingCompany.save();
 
-        const codeData = {
-            code: updatedCompany.activateCode
-        }
+        // const codeData = {
+        //     code: updatedCompany.activateCode
+        // }
 
-        const newCode = new activationCode(codeData);
-        await newCode.save();
+        // const newCode = new activationCode(codeData);
+        // await newCode.save();
 
         if (updateData.products) {
 
