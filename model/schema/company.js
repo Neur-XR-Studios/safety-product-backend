@@ -14,7 +14,7 @@ const company = new mongoose.Schema({
     }],
     isSubscribed: {
         type: Boolean,
-        default: false,
+        default: true,
     },
     createdOn: {
         type: Date,
@@ -28,7 +28,7 @@ const company = new mongoose.Schema({
     },
     activateCode: {
         type: String,
-        unique: true
+        // unique: true
     },
     lastActivationDate: {
         type: Date,

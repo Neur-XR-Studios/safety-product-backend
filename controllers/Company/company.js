@@ -260,30 +260,46 @@ const updateCompany = async (req, res) => {
 
 const deleteCompanyAndUsers = async (req, res) => {
     try {
-        const companyId = req.params.id;
-        var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$")
-        const ValidObjectId = checkForHexRegExp.test(companyId)
-        if (!ValidObjectId) {
-            res.status(400).json({ error: 'Invalid company ID format' });
-        }
-        const deletedCompany = await Company.findByIdAndDelete(companyId);
+        const providedPassword = req.body.superadminPassword;
+        const superadminUser = await User.findOne({ username: 'superadmin' });
 
-        if (!deletedCompany) {
-            return res.status(404).json({ message: 'Company not found' });
+        if (!superadminUser) {
+            return res.status(401).json({ error: 'Unauthorized: Superadmin not found' });
         }
 
-        const deletedUsers = await User.deleteMany({ company: companyId });
+        bcrypt.compare(providedPassword, superadminUser.password, async (err, passwordMatch) => {
 
-        return res.status(200).json({
-            message: 'Company and associated users deleted successfully',
-            data: {
-                deletedCompany,
-                deletedUsers,
-            },
+            if (err || !passwordMatch) {
+                return res.status(401).json({ error: 'Unauthorized: Superadmin password incorrect' });
+            }
+
+            const companyId = req.params.id;
+            const checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+            const isValidObjectId = checkForHexRegExp.test(companyId);
+
+            if (!isValidObjectId) {
+                return res.status(400).json({ error: 'Invalid company ID format' });
+            }
+
+            const deletedCompany = await Company.findByIdAndDelete(companyId);
+
+            if (!deletedCompany) {
+                return res.status(404).json({ message: 'Company not found' });
+            }
+
+            const deletedUsers = await User.deleteMany({ company: companyId });
+
+            return res.status(200).json({
+                message: 'Company and associated users deleted successfully',
+                data: {
+                    deletedCompany,
+                    deletedUsers,
+                },
+            });
         });
     } catch (error) {
         console.error('Failed to delete company:', error);
-        res.status(500).json({ message: 'Failed to delete company', error: error.message });
+        return res.status(500).json({ message: 'Failed to delete company', error: error.message });
     }
 };
 

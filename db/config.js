@@ -14,7 +14,7 @@ const connectDB = async (DATABASE_URL, DATABASE) => {
         await mongoose.connect(DATABASE_URL, DB_OPTIONS);
 
         // Check if admin user already exists based on username
-        const adminExisting = await User.findOne({ username: 'superadmin@neurindustries.com' });
+        const adminExisting = await User.findOne({ username: 'superadmin' });
 
         if (!adminExisting) {
             const phoneNumber = 7874263694;

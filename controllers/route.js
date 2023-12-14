@@ -15,7 +15,7 @@ router.use('/trainee', traineeRoute);
 router.use('/company', companyRoute);
 router.use('/learning', learningRoute);
 router.use('/evaluation', evaluationRoute);
-router.use('/training-types', trainingType);
+router.use('/product', trainingType);
 router.use('/work-at-height-evaluation', workAtHeightEvaluation);
 router.use('/auth', user);
 

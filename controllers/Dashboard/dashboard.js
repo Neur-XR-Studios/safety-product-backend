@@ -232,6 +232,14 @@ const fireExtinguisherExcel = async (req, res) => {
                 }
             },
             {
+                $lookup: {
+                    from: "sessiontimes",
+                    localField: "sessionId",
+                    foreignField: "sessionId",
+                    as: "sessiontime"
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     sessionId: 1,
@@ -255,6 +263,10 @@ const fireExtinguisherExcel = async (req, res) => {
                             responseTime: 1,
                         },
                     },
+                    sessiontime: {
+                        timeTaken: 1
+                    }
+
                 }
             },
             {
@@ -294,7 +306,8 @@ const fireExtinguisherExcel = async (req, res) => {
             { header: 'Response time (Test 2)', key: 'evaluationtest2responseTime', width: 25, style: { alignment: { horizontal: 'center' } } },
             { header: 'evaluation completion Status', key: 'evaluationcompletionStatus', width: 25, style: { alignment: { horizontal: 'center' } } },
 
-
+            //total session time 
+            { header: 'Total Session Time', key: 'totalsessiontimetaken', width: 25, style: { alignment: { horizontal: 'center' } } },
         ];
 
         // Set the worksheet columns
@@ -339,6 +352,9 @@ const fireExtinguisherExcel = async (req, res) => {
                     row.evaluationtest2responseTime = null;
                 }
 
+                rowData.sessiontime.forEach((sessiontimeData) => {
+                    row.totalsessiontimetaken = sessiontimeData.timeTaken
+                });
             });
 
             worksheet.addRow(row);
@@ -519,6 +535,14 @@ const workAtHeightExcel = async (req, res) => {
                 }
             },
             {
+                $lookup: {
+                    from: "sessiontimes",
+                    localField: "sessionId",
+                    foreignField: "sessionId",
+                    as: "sessiontime"
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     sessionId: 1,
@@ -534,6 +558,9 @@ const workAtHeightExcel = async (req, res) => {
                         score: 1,
                         completionStatus: 1
                     },
+                    sessiontime: {
+                        timeTaken: 1
+                    }
                 }
             },
             {
@@ -567,6 +594,9 @@ const workAtHeightExcel = async (req, res) => {
             { header: 'Evaluation time taken', key: 'evaluationtotalTime', width: 25, style: { alignment: { horizontal: 'center' } } },
             { header: 'Score', key: 'score', width: 25, style: { alignment: { horizontal: 'center' } } },
             { header: 'Completion Status', key: 'completionStatus', width: 25, style: { alignment: { horizontal: 'center' } } },
+
+            //total session time
+            { header: 'Total Session Time', key: 'totalsessiontimetaken', width: 25, style: { alignment: { horizontal: 'center' } } },
         ];
 
 
@@ -595,6 +625,10 @@ const workAtHeightExcel = async (req, res) => {
                 row.score = evaluationData.score
                 row.evaluationtotalTime = evaluationData.timeTaken
                 row.completionStatus = evaluationData.completionStatus
+            });
+
+            rowData.sessiontime.forEach((sessiontimeData) => {
+                row.totalsessiontimetaken = sessiontimeData.timeTaken
             });
 
             worksheet.addRow(row);
