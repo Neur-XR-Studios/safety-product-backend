@@ -20,7 +20,7 @@ const connectDB = async (DATABASE_URL, DATABASE) => {
             const phoneNumber = 7874263694;
             const firstName = 'Neur';
             const lastName = 'Industries';
-            const username = 'neurindustries';
+            const username = 'superadmin';
             const password = 'superadmin@123';
             const is_superadmin = true;
             const role = 'superadmin';
@@ -43,7 +43,7 @@ const connectDB = async (DATABASE_URL, DATABASE) => {
         // Check if admin user already exists based on username
         const guestExisting = await User.findOne({ username: 'guest' });
 
-        if (!adminExisting) {
+        if (!guestExisting) {
             const phoneNumber = 9000090000;
             const firstName = 'guest';
             const lastName = 'guest';
