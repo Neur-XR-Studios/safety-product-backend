@@ -200,42 +200,38 @@ const updateCompany = async (req, res) => {
     try {
         const companyId = req.params.id;
         const updateData = req.body;
-        var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$")
-        const ValidObjectId = checkForHexRegExp.test(companyId)
-        if (!ValidObjectId) {
-            res.status(400).json({ error: 'Invalid company ID format' });
+
+        // Validate ObjectId
+        const checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+        const isValidObjectId = checkForHexRegExp.test(companyId);
+
+        if (!isValidObjectId) {
+            return res.status(400).json({ error: 'Invalid company ID format' });
         }
+
         const existingCompany = await Company.findById(companyId);
+
         if (!existingCompany) {
             return res.status(404).json({ message: 'Company not found' });
         }
 
-        // const isActivationCode = await activationCode.findOne({ code: req.body.activateCode });
-        // const existingCode = await Company.findOne({ activateCode: req.body.activateCode });
-        // if (isActivationCode == req.body.activateCode || existingCode) {
-        //     return res.status(400).json({ message: 'Activation Code already exists.' });
-        // }
+        // Update company fields
         for (const key in updateData) {
             existingCompany[key] = updateData[key];
         }
 
+        // Save the updated company
         const updatedCompany = await existingCompany.save();
 
-        // const codeData = {
-        //     code: updatedCompany.activateCode
-        // }
-
-        // const newCode = new activationCode(codeData);
-        // await newCode.save();
-
+        // Update products if provided
         if (updateData.products) {
-
-            const updatedProducts = await TrainingType.updateMany(
+            await TrainingType.updateMany(
                 { _id: { $in: updateData.products } },
                 { $set: { company: companyId } }
             );
         }
 
+        // Update user data, including password hashing
         if (updateData.userData) {
             for (const userData of updateData.userData) {
                 const userId = userData._id;
