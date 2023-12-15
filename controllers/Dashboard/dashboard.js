@@ -170,6 +170,7 @@ const fireExtinguisherIndex = async (req, res) => {
         const responseTimeOfTest2 = calculateAverageResponseTime(result, 'test2');
 
         const averageResponseTime = (responseTimeOfTest1 + responseTimeOfTest2) / (2 * totalTrainingCompleted) || 0;
+        const roundedAverage = averageResponseTime.toFixed(2);
 
         res.send({
             message: 'Success',
@@ -178,7 +179,7 @@ const fireExtinguisherIndex = async (req, res) => {
                 totalTrainingCompleted,
                 totalHoursTrained,
                 readinessPercentage,
-                averageResponseTime
+                roundedAverage
             }
         });
     } catch (error) {
@@ -488,8 +489,8 @@ const calculateAverageScore = (result) => {
     const averageNumerator = totalNumerator / result.length || 0;
     const averageDenominator = totalDenominator / result.length || 0;
 
-    const averageScore = `${averageNumerator}/${averageDenominator}`;
-
+    const averageScore = averageNumerator;
+    // const averageScore = `${averageNumerator}/${averageDenominator}`;
     return averageScore;
 };
 
