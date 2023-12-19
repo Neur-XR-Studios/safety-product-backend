@@ -11,6 +11,12 @@ const createCompany = async (req, res) => {
     try {
         const { name, phoneNumber, username, password, products, activateCode } = req.body;
 
+
+        if (!name || !phoneNumber || !username || !password) {
+            return res.status(400).json({ message: `${!name ? 'Name' : !phoneNumber ? 'Phone Number' : !username ? 'Username' : 'Password'} is required.` });
+        }
+
+
         // const isActivationCode = await activationCode.findOne({ code: activateCode });
         // const existingCode = await Company.findOne({ activateCode: activateCode });
         // if (isActivationCode == activateCode || existingCode) {
