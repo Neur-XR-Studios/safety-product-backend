@@ -72,8 +72,8 @@ function calculateAverageResponseTime(result, test) {
             const timetake = timeTakenForEvaluation.responseTime;
 
             if (timetake) {
-                const [seconds, milliSeconds] = timetake.split(':');
-                responseTimes += parseInt(seconds, 10) + parseInt(milliSeconds, 10) / 1000;
+                const [minutes, seconds] = timetake.split(':');
+                responseTimes += parseInt(minutes, 10) + parseInt(seconds, 10);
             }
         }
     }
@@ -179,7 +179,7 @@ const fireExtinguisherIndex = async (req, res) => {
                 totalTrainingCompleted,
                 totalHoursTrained,
                 readinessPercentage,
-                roundedAverage
+                averageResponseTime
             }
         });
     } catch (error) {
@@ -189,13 +189,11 @@ const fireExtinguisherIndex = async (req, res) => {
 
 const fireExtinguisherExcel = async (req, res) => {
 
-
     try {
         const adminInfo = req.user;
         const companyId = adminInfo.company._id;
         const month = req.body.month;
         const year = req.body.year;
-
 
         // Validate month
         const monthNumber = parseInt(month, 10);
@@ -357,7 +355,14 @@ const fireExtinguisherExcel = async (req, res) => {
                     row.totalsessiontimetaken = sessiontimeData.timeTaken
                 });
             });
+            columns.forEach(column => {
+                const { key } = column;
+                const value = row[key];
 
+                if (value === null || value === undefined) {
+                    row[key] = '-';
+                }
+            });
             worksheet.addRow(row);
         });
 
@@ -631,7 +636,14 @@ const workAtHeightExcel = async (req, res) => {
             rowData.sessiontime.forEach((sessiontimeData) => {
                 row.totalsessiontimetaken = sessiontimeData.timeTaken
             });
+            columns.forEach(column => {
+                const { key } = column;
+                const value = row[key];
 
+                if (value === null || value === undefined) {
+                    row[key] = '-';
+                }
+            });
             worksheet.addRow(row);
         });
 
