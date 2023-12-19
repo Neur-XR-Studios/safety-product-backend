@@ -127,7 +127,7 @@ const connectDB = async (DATABASE_URL, DATABASE) => {
         console.log('Database Connected Successfully.');
     } catch (err) {
         console.error('Database Not connected', err.message);
-    }
+    } 
 };
 
 module.exports = connectDB;
