@@ -11,7 +11,6 @@ const createCompany = async (req, res) => {
     try {
         const { name, phoneNumber, username, password, products, activateCode } = req.body;
 
-
         if (!name || !phoneNumber || !username || !password) {
             return res.status(400).json({ message: `${!name ? 'Name' : !phoneNumber ? 'Phone Number' : !username ? 'Username' : 'Password'} is required.` });
         }
@@ -68,7 +67,14 @@ const createCompany = async (req, res) => {
 
 const getAllCompanies = async (req, res) => {
     try {
+
         const result = await Company.aggregate([
+            {
+                $match: {
+                    name: { $ne: 'guest' }
+
+                }
+            },
             {
                 $lookup: {
                     from: 'trainingtypes',
