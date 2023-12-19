@@ -30,6 +30,13 @@ exports.authorize = function (roles = []) {
 
         if (!decodedToken.role) return sendError("Error: Role missing");
         const userRole = decodedToken.role;
+
+        // Check if the user has the role "superadmin" and is_superadmin is true
+        if (exports.Roles.superAdmin.includes(userRole) && decodedToken.is_superadmin) {
+          req.user = decodedToken;
+          return next();
+        }
+
         // Check if the user has an admin role
         if (userRole === "admin") {
 
@@ -54,6 +61,7 @@ exports.authorize = function (roles = []) {
     }
   };
 };
+
 
 async function checkAdminSubscription(companyId) {
   try {
