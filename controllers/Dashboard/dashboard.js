@@ -146,10 +146,12 @@ const fireExtinguisherIndex = async (req, res) => {
         ]);
 
         // Total Training Completed
-        const totalTrainingCompleted = result.reduce((total, trainee) => {
-            const completionStatus = trainee.evaluation;
-            return total + completionStatus.filter(data => data.completionStatus === "Complete").length;
-        }, 0);
+        const totalTrainingCompleted = result.length;
+
+        // const totalTrainingCompleted = result.reduce((total, trainee) => {
+        //     const completionStatus = trainee.evaluation;
+        //     return total + completionStatus.filter(data => data.completionStatus === "Complete").length;
+        // }, 0);
 
         // Learning Time Taken
         const learningTimeTakenInHours = await processLearningTime(result);
@@ -436,10 +438,12 @@ const workAtHeightIndex = async (req, res) => {
             }
         ]);
         // Total Training Completed
-        const totalTrainingCompleted = result.reduce((total, trainee) => {
-            const completionStatus = trainee.workatheigthevaluation;
-            return total + completionStatus.filter(data => data.completionStatus === "Complete").length;
-        }, 0);
+        const totalTrainingCompleted = result.length;
+
+        // const totalTrainingCompleted = result.reduce((total, trainee) => {
+        //     const completionStatus = trainee.workatheigthevaluation;
+        //     return total + completionStatus.filter(data => data.completionStatus === "Complete").length;
+        // }, 0);
 
 
         // Learning Time Taken
