@@ -445,6 +445,12 @@ const workAtHeightIndex = async (req, res) => {
             return total + completionStatus.filter(data => data.completionStatus === "Complete").length;
         }, 0);
 
+        // Total Training InCompleted
+        const totalTrainingInCompleted = result.reduce((total, trainee) => {
+            const completionStatus = trainee.workatheigthevaluation;
+            return total + completionStatus.filter(data => data.completionStatus === "Incomplete").length;
+        }, 0);
+
 
         // Learning Time Taken
         const learningTimeTakenInHours = await processLearningTime(result);
@@ -462,7 +468,8 @@ const workAtHeightIndex = async (req, res) => {
         const readinessPercentage = totalNumberOFSessions || 0;
 
         // Average score
-        const averageScore = calculateAverageScore(result);
+        const fullModuleCompletion = totalTrainingCompleted + totalTrainingInCompleted
+        const averageScore = calculateAverageScore(result, fullModuleCompletion);
 
         res.send({
             message: 'Success',
@@ -481,7 +488,7 @@ const workAtHeightIndex = async (req, res) => {
 
 }
 
-const calculateAverageScore = (result) => {
+const calculateAverageScore = (result, fullModuleCompletion) => {
     let totalNumerator = 0;
     let totalDenominator = 0;
 
@@ -495,9 +502,8 @@ const calculateAverageScore = (result) => {
         });
     });
 
-    const averageNumerator = totalNumerator / result.length || 0;
+    const averageNumerator = totalNumerator / fullModuleCompletion || 0;
     const averageDenominator = totalDenominator / result.length || 0;
-
     const averageScore = averageNumerator;
     // const averageScore = `${averageNumerator}/${averageDenominator}`;
     return averageScore;
