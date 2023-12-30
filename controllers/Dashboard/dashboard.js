@@ -595,7 +595,7 @@ const workAtHeightExcel = async (req, res) => {
         ]);
         // Create a new Excel workbook and add a worksheet
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('FireExtinguisherData');
+        const worksheet = workbook.addWorksheet('WorkAtHeight');
 
         // Define the worksheet columns with custom headers
         const columns = [
