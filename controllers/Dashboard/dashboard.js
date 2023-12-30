@@ -353,9 +353,12 @@ const fireExtinguisherExcel = async (req, res) => {
                     row.evaluationtest2responseTime = null;
                 }
 
-                rowData.sessiontime.forEach((sessiontimeData) => {
-                    row.totalsessiontimetaken = sessiontimeData.timeTaken
-                });
+                // rowData.sessiontime.forEach((sessiontimeData) => {
+                //     row.totalsessiontimetaken = sessiontimeData.timeTaken
+                // });
+            });
+            rowData.sessiontime.forEach((sessiontimeData) => {
+                row.totalsessiontimetaken = sessiontimeData.timeTaken
             });
             columns.forEach(column => {
                 const { key } = column;
