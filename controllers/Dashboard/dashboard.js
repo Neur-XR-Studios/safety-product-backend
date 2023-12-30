@@ -469,7 +469,7 @@ const workAtHeightIndex = async (req, res) => {
 
         // Average score
         const fullModuleCompletion = totalTrainingCompleted + totalTrainingInCompleted
-        const averageScore = calculateAverageScore(result, fullModuleCompletion);
+        const averageScore = Math.round(calculateAverageScore(result, fullModuleCompletion));
 
         res.send({
             message: 'Success',
