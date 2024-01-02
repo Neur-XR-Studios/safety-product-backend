@@ -366,6 +366,7 @@ const fireExtinguisherExcel = async (req, res) => {
 
                 if (value === null || value === undefined) {
                     row[key] = '-';
+                    row.evaluationcompletionStatus = "Incomplete"
                 }
             });
             worksheet.addRow(row);
