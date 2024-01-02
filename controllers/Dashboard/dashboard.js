@@ -305,7 +305,7 @@ const fireExtinguisherExcel = async (req, res) => {
             { header: 'Extinguishment time (Test 1)', key: 'evaluationtest1extinguishmentTime', width: 25, style: { alignment: { horizontal: 'center' } } },
             { header: 'Total time (Test 2)', key: 'evaluationtest2totalTime', width: 25, style: { alignment: { horizontal: 'center' } } },
             { header: 'Response time (Test 2)', key: 'evaluationtest2responseTime', width: 25, style: { alignment: { horizontal: 'center' } } },
-            { header: 'evaluation completion Status', key: 'evaluationcompletionStatus', width: 25, style: { alignment: { horizontal: 'center' } } },
+            { header: 'completion Status', key: 'evaluationcompletionStatus', width: 25, style: { alignment: { horizontal: 'center' } } },
 
             //total session time 
             { header: 'Total Session Time', key: 'totalsessiontimetaken', width: 25, style: { alignment: { horizontal: 'center' } } },
