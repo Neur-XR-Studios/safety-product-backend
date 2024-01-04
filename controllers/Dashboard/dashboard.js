@@ -398,50 +398,52 @@ const fireExtinguisherExcel = async (req, res) => {
     // Add the data to the worksheet
     result.forEach((rowData, index) => {
       const row = {};
+
+      // Assuming 'CreatedOn' is the date field in your result
       const formattedDate = rowData.CreatedOn
         ? rowData.CreatedOn.toISOString().slice(0, 10)
         : "";
 
+      // Assigning values to custom keys for formatting
       row.SI = index + 1;
       row.Date = formattedDate;
       row.sessionId = index + 1000;
       row.phoneNumber = rowData.phoneNumber;
 
-      let learningTime = 0;
       rowData.learning.forEach((learningData) => {
         row.languageSelected = learningData.languageSelected;
-        learningTime += learningData.timeTaken;
+        row.learningtimeTaken = learningData.timeTaken;
       });
-      row.learningtimeTaken = formatTime(learningTime);
 
-      let evaluationTime = 0;
       rowData.evaluation.forEach((evaluationData) => {
-        evaluationTime += evaluationData.timeTaken;
-
+        row.evaluationtotalTime = evaluationData.timeTaken;
+        row.evaluationcompletionStatus = evaluationData.completionStatus;
         if (evaluationData.test1) {
-          evaluationTime += evaluationData.test1.totalTime;
           row.evaluationtest1totalTime = evaluationData.test1.totalTime;
           row.evaluationtest1responseTime = evaluationData.test1.responseTime;
           row.evaluationtest1extinguishmentTime =
             evaluationData.test1.extinguishmentTime;
+        } else {
+          row.evaluationtest1totalTime = null;
+          row.evaluationtest1responseTime = null;
+          row.evaluationtest1extinguishmentTime = null;
         }
 
-        if (evaluationData.test2) {
-          evaluationTime += evaluationData.test2.totalTime;
+        if (evaluationData.test1) {
           row.evaluationtest2totalTime = evaluationData.test2.totalTime;
           row.evaluationtest2responseTime = evaluationData.test2.responseTime;
+        } else {
+          row.evaluationtest2totalTime = null;
+          row.evaluationtest2responseTime = null;
         }
 
-        row.evaluationcompletionStatus = evaluationData.completionStatus;
+        // rowData.sessiontime.forEach((sessiontimeData) => {
+        //     row.totalsessiontimetaken = sessiontimeData.timeTaken
+        // });
       });
-      row.evaluationtotalTime = formatTime(evaluationTime);
-
-      let sessionTime = 0;
       rowData.sessiontime.forEach((sessiontimeData) => {
-        sessionTime += sessiontimeData.timeTaken;
+        row.totalsessiontimetaken = sessiontimeData.timeTaken;
       });
-      row.totalsessiontimetaken = formatTime(sessionTime);
-
       columns.forEach((column) => {
         const { key } = column;
         const value = row[key];
@@ -451,7 +453,6 @@ const fireExtinguisherExcel = async (req, res) => {
           row.evaluationcompletionStatus = "Incomplete";
         }
       });
-
       worksheet.addRow(row);
     });
 
@@ -474,12 +475,6 @@ const fireExtinguisherExcel = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
-
-function formatTime(timeInSeconds) {
-  const minutes = Math.floor(timeInSeconds / 60);
-  const seconds = timeInSeconds % 60;
-  return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
-}
 
 const workAtHeightIndex = async (req, res) => {
   const adminInfo = req.user;
