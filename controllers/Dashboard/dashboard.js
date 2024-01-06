@@ -501,7 +501,6 @@ function formatSecondsToTime(totalSeconds) {
   return `${totalMinutes}:${String(remainingSeconds).padStart(2, "0")}`;
 }
 
-
 const workAtHeightIndex = async (req, res) => {
   const adminInfo = req.user;
   const companyId = adminInfo.company._id;
@@ -810,7 +809,9 @@ const workAtHeightExcel = async (req, res) => {
     // Add the data to the worksheet
     result.forEach((rowData, index) => {
       const row = {};
-
+      let totalLearningSeconds = 0;
+      let totalEvaluationSeconds = 0;
+      let totalSessionSeconds = 0;
       // Assuming 'CreatedOn' is the date field in your result
       const formattedDate = rowData.CreatedOn
         ? rowData.CreatedOn.toISOString().slice(0, 10)
@@ -823,19 +824,30 @@ const workAtHeightExcel = async (req, res) => {
       row.phoneNumber = rowData.phoneNumber;
 
       rowData.learning.forEach((learningData) => {
+        totalLearningSeconds += parseTimeToSeconds(
+          learningData.timeTaken || "00:00"
+        );
         row.languageSelected = learningData.languageSelected;
         row.learningtimeTaken = learningData.timeTaken;
       });
 
       rowData.workatheigthevaluation.forEach((evaluationData) => {
+        totalEvaluationSeconds += parseTimeToSeconds(
+          evaluationData.timeTaken || "00:00"
+        );
         row.score = evaluationData.score;
         row.evaluationtotalTime = evaluationData.timeTaken;
         row.completionStatus = evaluationData.completionStatus;
       });
 
       rowData.sessiontime.forEach((sessiontimeData) => {
-        row.totalsessiontimetaken = sessiontimeData.timeTaken;
+        totalSessionSeconds += parseTimeToSeconds(
+          sessiontimeData.timeTaken || "00:00"
+        );
       });
+      const totalSeconds =
+        totalLearningSeconds + totalEvaluationSeconds + totalSessionSeconds;
+      row.totalsessiontimetaken = formatSecondsToTime(totalSeconds);
       columns.forEach((column) => {
         const { key } = column;
         const value = row[key];
@@ -867,20 +879,6 @@ const workAtHeightExcel = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
-
-function sumTimeStrings(timeStrings) {
-  let totalSeconds = 0;
-
-  timeStrings.forEach((timeString) => {
-    const [minutes, seconds] = timeString.split(":");
-    totalSeconds += parseInt(minutes) * 60 + parseInt(seconds);
-  });
-
-  const minutesResult = Math.floor(totalSeconds / 60);
-  const secondsResult = totalSeconds % 60;
-
-  return `${minutesResult}:${secondsResult}`;
-}
 
 module.exports = {
   fireExtinguisherIndex,
