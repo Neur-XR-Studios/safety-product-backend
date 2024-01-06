@@ -410,12 +410,22 @@ const fireExtinguisherExcel = async (req, res) => {
       row.sessionId = index + 1000;
       row.phoneNumber = rowData.phoneNumber;
 
+      let totalLearningSeconds = 0;
+      let totalEvaluationSeconds = 0;
+      let totalSessionSeconds = 0;
+
       rowData.learning.forEach((learningData) => {
+        totalLearningSeconds += parseTimeToSeconds(
+          learningData.timeTaken || "00:00"
+        );
         row.languageSelected = learningData.languageSelected;
         row.learningtimeTaken = learningData.timeTaken;
       });
 
       rowData.evaluation.forEach((evaluationData) => {
+        totalEvaluationSeconds += parseTimeToSeconds(
+          evaluationData.timeTaken || "00:00"
+        );
         row.evaluationtotalTime = evaluationData.timeTaken;
         row.evaluationcompletionStatus = evaluationData.completionStatus;
         if (evaluationData.test1) {
@@ -436,14 +446,18 @@ const fireExtinguisherExcel = async (req, res) => {
           row.evaluationtest2totalTime = null;
           row.evaluationtest2responseTime = null;
         }
+      });
 
-        // rowData.sessiontime.forEach((sessiontimeData) => {
-        //     row.totalsessiontimetaken = sessiontimeData.timeTaken
-        // });
-      });
       rowData.sessiontime.forEach((sessiontimeData) => {
-        row.totalsessiontimetaken = sessiontimeData.timeTaken;
+        totalSessionSeconds += parseTimeToSeconds(
+          sessiontimeData.timeTaken || "00:00"
+        );
       });
+
+      const totalSeconds =
+        totalLearningSeconds + totalEvaluationSeconds + totalSessionSeconds;
+      row.totalsessiontimetaken = formatSecondsToTime(totalSeconds);
+
       columns.forEach((column) => {
         const { key } = column;
         const value = row[key];
@@ -475,6 +489,19 @@ const fireExtinguisherExcel = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+function parseTimeToSeconds(timeString) {
+  const [minutes, seconds] = timeString.split(":");
+  return parseInt(minutes) * 60 + parseInt(seconds);
+}
+
+function formatSecondsToTime(totalSeconds) {
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const remainingSeconds = totalSeconds % 60;
+  return `${String(totalMinutes).padStart(3, "0")}:${String(
+    remainingSeconds
+  ).padStart(2, "0")}`;
+}
 
 const workAtHeightIndex = async (req, res) => {
   const adminInfo = req.user;
@@ -816,6 +843,7 @@ const workAtHeightExcel = async (req, res) => {
 
         if (value === null || value === undefined) {
           row[key] = "-";
+          row.completionStatus = "Incomplete";
         }
       });
       worksheet.addRow(row);
@@ -840,6 +868,20 @@ const workAtHeightExcel = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+function sumTimeStrings(timeStrings) {
+  let totalSeconds = 0;
+
+  timeStrings.forEach((timeString) => {
+    const [minutes, seconds] = timeString.split(":");
+    totalSeconds += parseInt(minutes) * 60 + parseInt(seconds);
+  });
+
+  const minutesResult = Math.floor(totalSeconds / 60);
+  const secondsResult = totalSeconds % 60;
+
+  return `${minutesResult}:${secondsResult}`;
+}
 
 module.exports = {
   fireExtinguisherIndex,
