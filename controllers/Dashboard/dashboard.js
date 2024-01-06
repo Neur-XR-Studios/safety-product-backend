@@ -498,10 +498,9 @@ function parseTimeToSeconds(timeString) {
 function formatSecondsToTime(totalSeconds) {
   const totalMinutes = Math.floor(totalSeconds / 60);
   const remainingSeconds = totalSeconds % 60;
-  return `${String(totalMinutes).padStart(3, "0")}:${String(
-    remainingSeconds
-  ).padStart(2, "0")}`;
+  return `${totalMinutes}:${String(remainingSeconds).padStart(2, "0")}`;
 }
+
 
 const workAtHeightIndex = async (req, res) => {
   const adminInfo = req.user;
