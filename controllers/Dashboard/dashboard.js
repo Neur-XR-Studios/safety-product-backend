@@ -190,7 +190,7 @@ const fireExtinguisherIndex = async (req, res) => {
         totalTrainingCompleted: totalTrainingsessionCompleted,
         totalHoursTrained,
         readinessPercentage,
-        averageResponseTime,
+        averageResponseTime: roundedAverage,
       },
     });
   } catch (error) {
