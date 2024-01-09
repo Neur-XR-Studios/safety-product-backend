@@ -178,10 +178,10 @@ const fireExtinguisherIndex = async (req, res) => {
     const responseTimeOfTest1 = calculateAverageResponseTime(result, "test1");
     const responseTimeOfTest2 = calculateAverageResponseTime(result, "test2");
 
-    const averageResponseTime =
+    const averageResponseTime1 =
       (responseTimeOfTest1 + responseTimeOfTest2) /
         (2 * totalTrainingsessionCompleted) || 0;
-    const roundedAverage = parseInt(averageResponseTime.toFixed(2)) || 0;
+    const roundedAverage = parseFloat(averageResponseTime1.toFixed(2)) || 0;
 
     res.send({
       message: "Success",
