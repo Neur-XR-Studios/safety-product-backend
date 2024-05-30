@@ -299,23 +299,25 @@ const fireExtinguisherExcel = async (req, res) => {
 
     // Define the worksheet columns with custom headers
     const columns = [
-      // Trainee Data
+      // SI column
       {
         header: "SI",
         key: "SI",
         width: 5,
         style: { alignment: { horizontal: "center" } },
       },
+      // Session data subheading
       {
-        header: "Date",
-        key: "Date",
-        width: 10,
+        header: "Session Data",
+        key: "sessionData",
+        width: 0,
         style: { alignment: { horizontal: "center" } },
+        outlineLevel: 1,
       },
       {
-        header: "Session ID",
-        key: "sessionId",
-        width: 15,
+        header: "Name",
+        key: "name",
+        width: 25,
         style: { alignment: { horizontal: "center" } },
       },
       {
@@ -324,70 +326,82 @@ const fireExtinguisherExcel = async (req, res) => {
         width: 15,
         style: { alignment: { horizontal: "center" } },
       },
-
-      // Learning
       {
         header: "Language selected",
         key: "languageSelected",
         width: 25,
         style: { alignment: { horizontal: "center" } },
       },
+      // Learning data subheading
       {
-        header: "Learning Time taken",
-        key: "learningtimeTaken",
+        header: "Learning Data",
+        key: "learningData",
+        width: 0,
+        style: { alignment: { horizontal: "center" } },
+        outlineLevel: 1,
+      },
+      {
+        header: "Total Learning Time taken",
+        key: "learningTimeTaken",
         width: 20,
         style: { alignment: { horizontal: "center" } },
       },
-
-      // Evaluation
+      // Evaluation data subheading
+      {
+        header: "Evaluation Data",
+        key: "evaluationData",
+        width: 0,
+        style: { alignment: { horizontal: "center" } },
+        outlineLevel: 1,
+      },
       {
         header: "Total time taken for evaluation",
-        key: "evaluationtotalTime",
+        key: "evaluationTotalTime",
         width: 28,
         style: { alignment: { horizontal: "center" } },
       },
       {
-        header: "Total time (Test 1)",
-        key: "evaluationtest1totalTime",
+        header: "Average Response time",
+        key: "averageResponseTime",
         width: 25,
         style: { alignment: { horizontal: "center" } },
       },
       {
-        header: "Response time (Test 1)",
-        key: "evaluationtest1responseTime",
-        width: 25,
+        header: "Average Extinguishment time",
+        key: "averageExtinguishmentTime",
+        width: 30,
         style: { alignment: { horizontal: "center" } },
       },
       {
-        header: "Extinguishment time (Test 1)",
-        key: "evaluationtest1extinguishmentTime",
-        width: 25,
+        header: "Attempted simulations",
+        key: "attemptedSimulations",
+        width: 20,
         style: { alignment: { horizontal: "center" } },
       },
       {
-        header: "Total time (Test 2)",
-        key: "evaluationtest2totalTime",
-        width: 25,
+        header: "Passed simulations",
+        key: "passedSimulations",
+        width: 20,
         style: { alignment: { horizontal: "center" } },
       },
       {
-        header: "Response time (Test 2)",
-        key: "evaluationtest2responseTime",
-        width: 25,
+        header: "Readiness percentage",
+        key: "readinessPercentage",
+        width: 20,
         style: { alignment: { horizontal: "center" } },
       },
+      // Completion Status
       {
-        header: "completion Status",
-        key: "evaluationcompletionStatus",
-        width: 25,
+        header: "Completion Status",
+        key: "completionStatus",
+        width: 20,
         style: { alignment: { horizontal: "center" } },
       },
-
-      //total session time
+      // Total Session Time
       {
         header: "Total Session Time",
-        key: "totalsessiontimetaken",
-        width: 25,
+        key: "totalSessionTime",
+        width: 20,
         style: { alignment: { horizontal: "center" } },
       },
     ];
@@ -407,8 +421,9 @@ const fireExtinguisherExcel = async (req, res) => {
       // Assigning values to custom keys for formatting
       row.SI = index + 1;
       row.Date = formattedDate;
-      row.sessionId = index + 1000;
+      row.sessionId = rowData.sessionId;
       row.phoneNumber = rowData.phoneNumber;
+      row.name = rowData.name; // Assuming there's a 'name' field in the result
 
       let totalLearningSeconds = 0;
       let totalEvaluationSeconds = 0;
@@ -419,33 +434,21 @@ const fireExtinguisherExcel = async (req, res) => {
           learningData.timeTaken || "00:00"
         );
         row.languageSelected = learningData.languageSelected;
-        row.learningtimeTaken = learningData.timeTaken;
+        row.learningTimeTaken = learningData.timeTaken;
       });
 
       rowData.evaluation.forEach((evaluationData) => {
         totalEvaluationSeconds += parseTimeToSeconds(
           evaluationData.timeTaken || "00:00"
         );
-        row.evaluationtotalTime = evaluationData.timeTaken;
-        row.evaluationcompletionStatus = evaluationData.completionStatus;
-        if (evaluationData.test1) {
-          row.evaluationtest1totalTime = evaluationData.test1.totalTime;
-          row.evaluationtest1responseTime = evaluationData.test1.responseTime;
-          row.evaluationtest1extinguishmentTime =
-            evaluationData.test1.extinguishmentTime;
-        } else {
-          row.evaluationtest1totalTime = null;
-          row.evaluationtest1responseTime = null;
-          row.evaluationtest1extinguishmentTime = null;
-        }
-
-        if (evaluationData.test1) {
-          row.evaluationtest2totalTime = evaluationData.test2.totalTime;
-          row.evaluationtest2responseTime = evaluationData.test2.responseTime;
-        } else {
-          row.evaluationtest2totalTime = null;
-          row.evaluationtest2responseTime = null;
-        }
+        row.evaluationTotalTime = evaluationData.timeTaken;
+        row.completionStatus = evaluationData.completionStatus;
+        row.averageResponseTime = evaluationData.averageResponseTime;
+        row.averageExtinguishmentTime =
+          evaluationData.averageExtinguishmentTime;
+        row.attemptedSimulations = evaluationData.attemptedSimulations;
+        row.passedSimulations = evaluationData.passedSimulations;
+        row.readinessPercentage = evaluationData.readinessPercentage;
       });
 
       rowData.sessiontime.forEach((sessiontimeData) => {
@@ -456,7 +459,7 @@ const fireExtinguisherExcel = async (req, res) => {
 
       const totalSeconds =
         totalLearningSeconds + totalEvaluationSeconds + totalSessionSeconds;
-      row.totalsessiontimetaken = formatSecondsToTime(totalSeconds);
+      row.totalSessionTime = formatSecondsToTime(totalSeconds);
 
       columns.forEach((column) => {
         const { key } = column;
@@ -464,7 +467,7 @@ const fireExtinguisherExcel = async (req, res) => {
 
         if (value === null || value === undefined) {
           row[key] = "-";
-          row.evaluationcompletionStatus = "Incomplete";
+          row.completionStatus = "Incomplete";
         }
       });
       worksheet.addRow(row);
@@ -489,6 +492,21 @@ const fireExtinguisherExcel = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+// Helper function to parse time (HH:mm) to seconds
+function parseTimeToSeconds(time) {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 3600 + minutes * 60;
+}
+
+// Helper function to format seconds to time (HH:mm)
+function formatSecondsToTime(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}`;
+}
 
 function parseTimeToSeconds(timeString) {
   const [minutes, seconds] = timeString.split(":");
